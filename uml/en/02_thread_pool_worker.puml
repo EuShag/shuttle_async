@@ -1,0 +1,89 @@
+@startuml
+title ThreadPoolExecutor — worker scheduling and shutdown
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Submitter" as Submitter
+participant "ThreadPoolExecutor" as Pool
+participant "TLS current worker" as TLS
+queue "Worker local deque\n(Chase–Lev)" as Local
+queue "Global incoming queue" as Incoming
+participant "Notifier\n(generation atomic)" as Notifier
+participant "Worker dispatcher" as Dispatcher
+participant "Worker service queue" as Service
+participant "Peer workers" as Peers
+participant "Task coroutine" as Task
+
+==  Submission ==
+Submitter -> Pool : execute(handle)
+Pool -> Pool : validate handle and stopping state
+alt Called from a pool worker
+  Pool -> TLS : read current WorkerContext
+  TLS --> Pool : worker context
+  Pool -> Local : try_push(handle)
+  alt Local queue full
+    Pool -> Incoming : enqueue(handle)
+  end
+else Called from an external thread
+  Pool -> Incoming : enqueue(handle)
+end
+Pool -> Notifier : notify_one()
+Pool --> Submitter : Status
+
+==  Worker loop ==
+Dispatcher -> Service : check continuation/service work
+alt Service work available
+  Service --> Dispatcher : handle
+else No service work
+  Dispatcher -> Local : pop()
+  alt Local work available
+    Local --> Dispatcher : handle
+  else Local queue empty
+    Dispatcher -> Incoming : try_dequeue()
+    alt Global work available
+      Incoming --> Dispatcher : handle
+    else Global queue empty
+      Dispatcher -> Peers : randomized full scan;\nsteal one handle
+      Peers --> Dispatcher : handle or empty
+    end
+  end
+end
+
+alt Work found
+  Dispatcher -> Dispatcher : symmetric transfer to handle
+  Dispatcher -> Task : resume / run until suspension
+  Task --> Dispatcher : completion or suspension
+else No work and pool is stopping
+  Dispatcher -> Dispatcher : exit after accepted work drains
+else No work and pool is active
+  Dispatcher -> Dispatcher : bounded _mm_pause spin
+  Dispatcher -> Dispatcher : register sleeping worker
+  Dispatcher -> Notifier : wait until work or shutdown
+  Notifier --> Dispatcher : wake
+  Dispatcher -> Dispatcher : retire sleeper/wake reservation
+end
+
+note over Pool,Notifier
+  Incoming work increments the queue count before publishing the handle.
+  A packed atomic tracks sleeping workers and reserved wake-ups; enqueue
+  notifies only when an unreserved sleeper is available.
+end note
+
+==  Shutdown ==
+Submitter -> Pool : stop / destruction
+Pool -> Pool : reject new submissions; request worker stop
+Pool -> Notifier : notify workers
+loop Until accepted work is drained
+  Dispatcher -> Dispatcher : continue dispatching queued work
+end
+Dispatcher --> Pool : worker exits
+@enduml

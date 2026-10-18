@@ -2,6 +2,7 @@
 // Created by Shagu on 13.10.2026.
 //
 
+#include <iostream>
 #include <async/thread_pool_executor/thread_pool_executor.hpp>
 #include <async/try.hpp>
 
@@ -33,7 +34,8 @@ namespace shuttle::async {
     // =================================================================
     [[nodiscard]] Result<MiUniquePtr<ThreadPoolExecutor>> ThreadPoolExecutor::create(
         size_t numWorkers,
-        WorkerCrashCallback&& crushCallback) noexcept
+        WorkerCrashCallback&& crushCallback,
+        ThreadPoolDiagnostics* diagnostics) noexcept
     {
         if (numWorkers == 0) {
             return std::unexpected(Error::invalid_worker_count);
@@ -69,7 +71,8 @@ namespace shuttle::async {
             std::move(localThreads),
             std::move(localContexts),
             std::move(localQueue),
-            std::move(crushCallback)
+            std::move(crushCallback),
+            diagnostics
         );
 
         if (!executor) [[unlikely]] {
@@ -92,6 +95,7 @@ namespace shuttle::async {
     ThreadPoolExecutor::~ThreadPoolExecutor() {
         m_stopping.store(true, std::memory_order_release);
         m_notifier.notify_all();
+        m_threads.clear();
     }
 
     Status ThreadPoolExecutor::execute(
@@ -125,9 +129,10 @@ namespace shuttle::async {
                 return {};
             }
 
-            // Пинаем строго одного случайного заснувшего соседа через WaitOnAddress,
-            // чтобы он проснулся и помог нам разгрузить бэклог (Work-Stealing)
-            m_notifier.notify_one();
+            if (m_diagnostics != nullptr) {
+                m_diagnostics->localEnqueues.fetch_add(1, std::memory_order_relaxed);
+            }
+            notifyWorkAvailable();
         }
         else {
             // =================================================================
@@ -144,26 +149,59 @@ namespace shuttle::async {
     // ВСПОМОГАТЕЛЬНЫЙ МЕТОД КЛАССА ДЛЯ РАБОТЫ С ГЛОБАЛЬНЫМ СКЛАДОМ
     // =================================================================
     Status ThreadPoolExecutor::enqueueIncoming(std::coroutine_handle<> handle) noexcept {
-        // Атомарно инкрементируем глобальный счетчик бэклога
         m_incomingCount.fetch_add(1, std::memory_order_release);
 
         // moodycamel затребует новые страницы памяти у ОС Windows, если старые забиты.
         // Если в операционной системе тотально закончилась память — метод вернет false.
         if (!m_incomingQueue.enqueue(handle)) [[unlikely]] {
-            // Откатываем счетчик назад
             m_incomingCount.fetch_sub(1, std::memory_order_relaxed);
-
             // Единственная законная техническая internalError воркера/пула:
             return std::unexpected(Error::queue_enqueue_failed);
         }
 
+        if (m_diagnostics != nullptr) {
+            m_diagnostics->incomingEnqueues.fetch_add(1, std::memory_order_relaxed);
+        }
         // Будим одного воркера пула, чтобы он выгреб задачу из глобального склада
-        m_notifier.notify_one();
+        notifyWorkAvailable();
         return {};
     }
 
     void ThreadPoolExecutor::signalWorkerWakeup(size_t) {
+        if (m_diagnostics != nullptr) {
+            m_diagnostics->workNotifications.fetch_add(1, std::memory_order_relaxed);
+        }
         m_notifier.notify_all();
+    }
+
+    void ThreadPoolExecutor::notifyWorkAvailable() noexcept {
+        uint64_t state = m_sleepState.load(std::memory_order_relaxed);
+        while ((state >> 32) > (state & SleepReservationMask)) {
+            if (m_sleepState.compare_exchange_weak(
+                    state, state + 1,
+                    std::memory_order_acq_rel, std::memory_order_relaxed)) {
+                if (m_diagnostics != nullptr) {
+                    m_diagnostics->workNotifications.fetch_add(
+                        1, std::memory_order_relaxed);
+                }
+                m_notifier.notify_one();
+                return;
+            }
+        }
+    }
+
+    void ThreadPoolExecutor::leaveSleepState() noexcept {
+        uint64_t state = m_sleepState.load(std::memory_order_relaxed);
+        for (;;) {
+            const uint64_t reservations = state & SleepReservationMask;
+            const uint64_t next = state - SleepingWorkerIncrement
+                - (reservations != 0 ? 1 : 0);
+            if (m_sleepState.compare_exchange_weak(
+                    state, next,
+                    std::memory_order_acq_rel, std::memory_order_relaxed)) {
+                return;
+            }
+        }
     }
 
     Status ThreadPoolExecutor::init() noexcept {
@@ -200,7 +238,7 @@ namespace shuttle::async {
         ctx.m_continuation = WorkerContext::WorkerExecutor{&ctx, this};
         ctx.m_randomState = static_cast<uint32_t>(id + 1) | 1u;
 
-        auto dispatcher = runDispatcher(ctx);
+        auto dispatcher = runDispatcher(&ctx);
         ctx.m_dispatcher = dispatcher;
 
         if (!dispatcher.has_value()) [[unlikely]] { m_crashCallback(ctx.m_id, dispatcher.error()); return; }
@@ -210,10 +248,13 @@ namespace shuttle::async {
             .m_dispatcherCoroHandle = dispatcher
         });
 
+        m_currentWorker = &ctx;
         ctx.m_dispatcher.resume();
+        m_currentWorker = nullptr;
+        std::cout << "Working end!" << std::endl;
     }
 
-    ThreadPoolDispatcherTask ThreadPoolExecutor::runDispatcher(WorkerContext& ctx) {
+    DispatcherTask ThreadPoolExecutor::runDispatcher(WorkerContext* ctx) {
         // =================================================================
         // ОСНОВНОЙ СИНХРОННЫЙ ЦИКЛ ПЛАНИРОВАНИЯ ТЕКУЩЕГО ПОТОКА
         // =================================================================
@@ -221,8 +262,8 @@ namespace shuttle::async {
         while (true) {
             // КРИТИЧЕСКИЙ ИНВАРИАНТ ОСТАНОВКИ ПУЛА (При выходе из игры)
             if (m_stopping.load(std::memory_order_relaxed)) [[unlikely]] {
-                if (ctx.m_queue.empty()
-                    && ctx.m_serviceQueueSize.load(std::memory_order_relaxed) == 0
+                if (ctx->m_queue.empty()
+                    && ctx->m_serviceQueueSize.load(std::memory_order_relaxed) == 0
                     && m_incomingCount.load(std::memory_order_relaxed) == 0) {
                     break; // Мягко тушим поток ОС Windows
                 }
@@ -230,15 +271,20 @@ namespace shuttle::async {
 
             std::coroutine_handle targetHandle = nullptr;
             // ШАГ 0: Пакетная вычистка Шага 0 (Приоритетная служебная очередь)
-            if (ctx.m_serviceQueue.try_dequeue(*ctx.m_serviceQueueConsumerToken, targetHandle) && targetHandle) {
-                ctx.m_serviceQueueSize.fetch_sub(1, std::memory_order_acq_rel);
+            if (ctx->m_serviceQueue.try_dequeue(*ctx->m_serviceQueueConsumerToken, targetHandle) && targetHandle) {
+                ctx->m_serviceQueueSize.fetch_sub(1, std::memory_order_acq_rel);
                 spin = 0;
                 co_yield targetHandle;
                 continue;
             }
 
             // ШАГ 1: Локальная дека Chase-Lev (Молниеносный LIFO воркера)
-            if (auto handle = ctx.m_queue.pop()) {
+            if (auto handle = ctx->m_queue.pop()) {
+                if (m_diagnostics != nullptr
+                    && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
+                    m_diagnostics->workers[ctx->m_id].localDequePops.fetch_add(
+                        1, std::memory_order_relaxed);
+                }
                 spin = 0;
                 co_yield handle;
                 continue;
@@ -248,8 +294,13 @@ namespace shuttle::async {
             uint64_t const incomingCount = m_incomingCount.load(std::memory_order_acquire);
             if (incomingCount > 0) {
                 std::coroutine_handle globalCoro = nullptr;
-                if (m_incomingQueue.try_dequeue(*ctx.m_incomingQueueConsumerToken, globalCoro) && globalCoro) {
+                if (m_incomingQueue.try_dequeue(*ctx->m_incomingQueueConsumerToken, globalCoro) && globalCoro) {
                     m_incomingCount.fetch_sub(1, std::memory_order_relaxed);
+                    if (m_diagnostics != nullptr
+                        && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
+                        m_diagnostics->workers[ctx->m_id].incomingDequeues.fetch_add(
+                            1, std::memory_order_relaxed);
+                    }
                     spin = 0;
                     co_yield globalCoro;
                     continue;
@@ -257,19 +308,29 @@ namespace shuttle::async {
             }
 
             // ШАГ 3: Рандомизированное Work-Stealing у коллег по пулу (Xorshift FIFO с головы)
-            ctx.m_randomState ^= ctx.m_randomState << 13;
-            ctx.m_randomState ^= ctx.m_randomState >> 17;
-            ctx.m_randomState ^= ctx.m_randomState << 5;
+            ctx->m_randomState ^= ctx->m_randomState << 13;
+            ctx->m_randomState ^= ctx->m_randomState >> 17;
+            ctx->m_randomState ^= ctx->m_randomState << 5;
 
-            size_t const startVictimId = ctx.m_randomState % m_numWorkers;
+            size_t const startVictimId = ctx->m_randomState % m_numWorkers;
 
             std::coroutine_handle stealCoroHandle = nullptr;
             for (size_t i = 0; i < m_numWorkers; ++i) {
                 size_t const victimId = (startVictimId + i) % m_numWorkers;
 
-                if (victimId != ctx.m_id) {
+                if (victimId != ctx->m_id) {
+                    if (m_diagnostics != nullptr
+                        && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
+                        m_diagnostics->workers[ctx->m_id].stealProbes.fetch_add(
+                            1, std::memory_order_relaxed);
+                    }
                     if (auto handle = m_workers[victimId].m_queue.steal()) {
-                        stealCoroHandle = handle; // Задача успешно украдена у соседа!
+                        stealCoroHandle = handle;
+                        if (m_diagnostics != nullptr
+                            && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
+                            m_diagnostics->workers[ctx->m_id].successfulSteals.fetch_add(
+                                1, std::memory_order_relaxed);
+                        }
                         break;
                     }
                 }
@@ -290,19 +351,31 @@ namespace shuttle::async {
             else {
                 // 2. ТЯЖЕЛЫЙ СТАТИЧЕСКИЙ СОН НА ВАШЕМ GENERATION NOTIFIER
                 // Поток ОС Windows безболезненно засыпает в анабиозе ядра ОС через WaitOnAddress
+                if (m_diagnostics != nullptr
+                    && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
+                    m_diagnostics->workers[ctx->m_id].idleWaits.fetch_add(
+                        1, std::memory_order_relaxed);
+                }
+                m_sleepState.fetch_add(1ULL << 32, std::memory_order_acq_rel);
                 m_notifier.wait([this, &ctx]() noexcept {
                     if (m_stopping.load(std::memory_order_acquire)) [[unlikely]] return true;
 
                     // Проверяем точные лок-фри счетчики и деки без лишнего оверхеда
-                    if (ctx.m_serviceQueueSize.load(std::memory_order_acquire) > 0) return true;
-                    if (!ctx.m_queue.empty()) return true;
+                    if (ctx->m_serviceQueueSize.load(std::memory_order_acquire) > 0) return true;
+                    if (!ctx->m_queue.empty()) return true;
                     if (m_incomingCount.load(std::memory_order_acquire) > 0) return true;
                     for (size_t workerId = 0; workerId < m_numWorkers; ++workerId) {
-                        if (workerId != ctx.m_id && !m_workers[workerId].m_queue.empty()) return true;
+                        if (workerId != ctx->m_id && !m_workers[workerId].m_queue.empty()) return true;
                     }
 
                     return false; // Всё пусто — продолжаем спать в ядре ОС
                 });
+                leaveSleepState();
+                if (m_diagnostics != nullptr
+                    && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
+                    m_diagnostics->workers[ctx->m_id].waitReturns.fetch_add(
+                        1, std::memory_order_relaxed);
+                }
                 spin = 0;
             }
         }

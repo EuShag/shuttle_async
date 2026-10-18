@@ -1,0 +1,64 @@
+@startuml
+title Модуль async — ошибки операций и поведение при сбоях
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Вызывающий код" as Caller
+participant "API асинхронных задач" as Api
+participant "Исполнитель" as Executor
+participant "Обещание результата задачи" as Promise
+participant "Общее состояние" as State
+participant "Ожидающая корутина" as Waiter
+
+== Операционные ошибки на основе expected ==
+Caller -> Api : создать / запустить / выполнить
+Api -> Executor : execute(handle)
+alt Неверный дескриптор, остановленный исполнитель,\nошибка очереди / выделения памяти / запуска
+  Executor --> Api : std::unexpected(Error)
+  Api --> Caller : ошибка Result<T> / Status
+else Операция принята
+  Executor --> Api : успешно
+  Api --> Caller : успешно
+end
+
+== Ошибка планирования продолжения ==
+Promise -> State : завершить задачу и подать сигнал ожидающей корутине
+State -> Executor : execute(waiter handle)
+alt Продолжение принято
+  Executor --> State : успешно
+else Продолжение отклонено
+  Executor --> State : unexpected(Error)
+  State -> Waiter : резервно возобновить непосредственно
+  note right of Waiter
+    Это не позволяет оставить ожидающую корутину приостановленной, но
+    может нарушить привязку к выбранному исполнителю.
+  end note
+end
+
+== Необработанное исключение корутины ==
+Promise -> Promise : unhandled_exception()
+Promise -> Promise : std::terminate()
+note over Promise
+  Исключения корутин не представлены типом Error
+  в текущем пути возврата результата задачи.
+end note
+
+== Ошибка планирования объединения области ==
+Api -> Executor : запланировать продолжение объединения
+Executor --> Api : unexpected(Error)
+Api -> Api : std::terminate()
+
+note over Api,Waiter
+  Error — локальное для модуля перечисление, передаваемое через std::expected.
+  Отмена AsyncTask отличается от операционной ошибки Error.
+end note
+@enduml

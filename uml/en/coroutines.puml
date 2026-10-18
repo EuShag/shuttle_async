@@ -1,0 +1,31 @@
+@startuml
+title AsyncSharedState<T> — task completion state machine
+
+[*] --> Pending : create shared state
+
+Pending --> Suspended : waiter successfully registered
+Pending --> Signaled : producer publishes completion before waiter registration
+Suspended --> Signaled : producer publishes completion
+
+Signaled --> [*] : future consumes result and releases ownership
+Pending --> [*] : endpoints abandoned / last reference released
+Suspended --> [*] : waiter and producer release final references
+
+note right of Pending
+  Shared state is created dynamically by makeAsyncState<T>(allocator).
+  The factory returns move-only AsyncPromise<T> and AsyncFuture<T>
+  endpoints that share ownership of the state.
+end note
+
+note right of Suspended
+  The waiter handle and selected executor are published before the
+  Pending -> Suspended transition. If completion wins the race, the
+  awaiter does not remain suspended.
+end note
+
+note right of Signaled
+  Cancellation is a separate cooperative flag; it is not a completion
+  state. Dropping a promise without publishing a value completes the
+  state as cancelled.
+end note
+@enduml

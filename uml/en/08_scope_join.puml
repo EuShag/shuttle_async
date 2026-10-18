@@ -1,0 +1,58 @@
+@startuml
+title CoroScope / JoinableScope — child lifetime and joining
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Scope owner" as Owner
+participant "JoinableScope" as Scope
+participant "Child AsyncTask" as Child
+participant "JointerTask" as Joiner
+participant "BlockingExecutor" as BlockingExecutor
+participant "Executor" as Executor
+
+Owner -> Scope : launch(child task)
+Scope -> Scope : register child in scope lifetime protocol
+Scope -> Child : create child task with scope context
+Scope -> Child : start according to launch mode
+
+... child task runs ...
+
+Owner -> Scope : joinAll() or scope destruction
+Scope -> Joiner : create / await join task
+alt Children remain active
+  Scope -> BlockingExecutor : wait for join completion
+  note over Scope,Joiner
+    Child count and scope death state coordinate
+    who completes the join continuation.
+  end note
+  Child -> Scope : decrement child count at completion
+  alt This is the last child and join was requested
+    Scope -> Executor : schedule join continuation
+    alt Scheduling succeeds
+      Executor -> Joiner : resume join task
+    else Scheduling fails
+      Scope -> Scope : terminate()
+    end
+  end
+  Joiner -> BlockingExecutor : signal synchronous waiter
+  BlockingExecutor --> Owner : joinAll() returns
+else No children remain
+  Scope -> Joiner : complete without waiting
+  Joiner --> Owner : joinAll() returns
+end
+
+note over Owner,Scope
+  JoinableScope::launch wraps launched work in BlockingTask.
+  joinAll() and destruction wait for the scope's children;
+  this is structured lifetime management, not forced cancellation.
+end note
+@enduml

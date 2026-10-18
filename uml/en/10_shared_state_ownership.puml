@@ -1,0 +1,43 @@
+@startuml
+title AsyncSharedState — dynamic allocation and endpoint ownership
+
+actor "Task/API caller" as Caller
+participant "makeAsyncState<T>(allocator)" as Factory
+participant "Allocator" as Allocator
+participant "AsyncSharedState<T>" as State
+participant "AsyncPromise<T>" as Promise
+participant "AsyncFuture<T>" as Future
+participant "Awaiting coroutine" as Awaiter
+
+Caller -> Factory : create state pair
+Factory -> Allocator : allocate sizeof(AsyncSharedState<T>)
+Allocator --> Factory : storage or allocation error
+alt allocation succeeds
+  Factory -> State : construct in allocated storage
+  Factory -> Promise : create move-only endpoint
+  Factory -> Future : create move-only endpoint
+  Factory --> Caller : AsyncStatePair<T>
+else allocation fails
+  Factory --> Caller : Result error
+end
+
+Caller -> Promise : set value / signal completion
+Promise -> State : publish result and transition completion state
+opt waiter already registered
+  State -> Awaiter : schedule through selected executor
+end
+Awaiter -> Future : consume result
+
+note over State,Future
+  The state is reference-counted while endpoints, await operations, and
+  completion callbacks use it. The factory retains the allocator's
+  deallocation operation so the storage is released correctly.
+  AsyncSharedState is not a user-created stack object.
+end note
+
+note over Promise,Future
+  AsyncPromise and AsyncFuture are move-only. A custom allocator may choose
+  the placement strategy for the shared state; it does not relocate the
+  coroutine frame itself.
+end note
+@enduml

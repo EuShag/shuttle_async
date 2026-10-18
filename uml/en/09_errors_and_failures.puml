@@ -1,0 +1,64 @@
+@startuml
+title Async module — operational errors and failure behavior
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Caller" as Caller
+participant "Async API" as Api
+participant "Executor" as Executor
+participant "Task promise" as Promise
+participant "AsyncSharedState" as State
+participant "Waiter coroutine" as Waiter
+
+==  Expected-based operational errors ==
+Caller -> Api : create / start / execute
+Api -> Executor : execute(handle)
+alt Invalid handle, stopped executor,\nqueue/allocation/startup failure
+  Executor --> Api : std::unexpected(Error)
+  Api --> Caller : Result<T> / Status error
+else Operation accepted
+  Executor --> Api : success
+  Api --> Caller : success
+end
+
+==  Continuation scheduling failure ==
+Promise -> State : complete task and signal waiter
+State -> Executor : execute(waiter handle)
+alt Continuation accepted
+  Executor --> State : success
+else Continuation rejected
+  Executor --> State : unexpected(Error)
+  State -> Waiter : resume inline fallback
+  note right of Waiter
+    This avoids leaving the waiter suspended, but
+    can violate the requested executor affinity.
+  end note
+end
+
+==  Unhandled coroutine exception ==
+Promise -> Promise : unhandled_exception()
+Promise -> Promise : std::terminate()
+note over Promise
+  Coroutine exceptions are not represented as Error
+  in the current task result path.
+end note
+
+==  Scope join scheduling failure ==
+Api -> Executor : schedule join continuation
+Executor --> Api : unexpected(Error)
+Api -> Api : std::terminate()
+
+note over Api,Waiter
+  Error is a module-local enum carried by std::expected.
+  AsyncTask cancellation is distinct from operational Error.
+end note
+@enduml

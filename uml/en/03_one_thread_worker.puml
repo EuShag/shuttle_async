@@ -1,0 +1,71 @@
+@startuml
+title OneThreadExecutor — queue, dispatch, and shutdown
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Submitter(s)" as Submitter
+participant "OneThreadExecutor" as Executor
+queue "ConcurrentQueue\n<coroutine_handle>" as Queue
+participant "Notifier" as Notifier
+participant "Dedicated worker thread" as Worker
+participant "Dispatcher coroutine" as Dispatcher
+participant "ConsumerToken" as ConsumerToken
+participant "Task coroutine" as Task
+
+==  Start ==
+Executor -> Worker : create dedicated thread
+Worker -> Worker : establish executor TLS context
+Worker -> Dispatcher : start dispatcher coroutine
+Dispatcher -> ConsumerToken : create on consumer thread
+Worker --> Executor : startup rendezvous complete
+
+==  Submit ==
+Submitter -> Executor : execute(handle)
+Executor -> Executor : validate handle and lifecycle\nreserve active submission
+alt Invalid handle or stopping
+  Executor --> Submitter : unexpected(Error)
+else Accepted
+  Executor -> Executor : account pending work
+  Executor -> Queue : enqueue(handle)
+  alt Enqueue succeeds
+    Executor -> Notifier : notify worker
+    Executor --> Submitter : success
+  else Enqueue fails
+    Executor -> Executor : release pending/submission accounting
+    Executor --> Submitter : unexpected(Error)
+  end
+end
+
+==  Dispatch ==
+Worker -> Dispatcher : resume dispatcher
+loop Until stop requested and all accepted work drains
+  Dispatcher -> Queue : try_dequeue(ConsumerToken)
+  alt Handle available
+    Queue --> Dispatcher : handle
+    Dispatcher -> Dispatcher : symmetric transfer to handle
+    Dispatcher -> Task : resume / run until suspension
+    Task --> Dispatcher : completion or suspension
+  else Queue empty
+    Dispatcher -> Notifier : wait for queue work or shutdown
+    Notifier --> Dispatcher : wake
+  end
+end
+
+==  Shutdown ==
+Submitter -> Executor : stop / destruction
+Executor -> Executor : close submission lifecycle
+Executor -> Notifier : notify worker
+Executor --> Submitter : wait for worker exit
+Worker -> Dispatcher : drain queued work, then exit
+Dispatcher --> Worker : dispatcher complete
+Worker --> Executor : join complete
+@enduml

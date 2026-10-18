@@ -1,0 +1,52 @@
+@startuml
+title BlockingTask<T>::get() — синхронное ожидание завершения задачи
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Вызывающий поток ОС" as Caller
+participant "Блокирующая задача" as BlockingTask
+participant "Асинхронная задача" as Task
+participant "Общее состояние" as State
+participant "Блокирующий исполнитель" as BlockingExecutor
+participant "Корутина задачи" as Coroutine
+
+Caller -> BlockingTask : get()
+BlockingTask -> Task : проверить задачу и занять единственное право потребителя
+BlockingTask -> Task : запустить, если ещё не запущена
+BlockingTask -> Caller : установить встроенный BlockingExecutor в TLS
+BlockingTask -> State : проверить isSignaled()
+
+alt Результат уже доступен
+  State --> BlockingTask : Signaled
+  BlockingTask -> State : извлечь результат
+  BlockingTask --> Caller : вернуть значение / void
+else Результат пока недоступен
+  BlockingTask -> State : зарегистрировать noop_coroutine и BlockingExecutor
+  alt Завершение опередило регистрацию
+    State --> BlockingTask : регистрация проиграла; продолжить непосредственно
+  else Ожидание зарегистрировано
+    BlockingTask -> BlockingExecutor : ожидать сигнал
+    ... вызывающий поток ОС заблокирован ...
+    Coroutine -> State : опубликовать результат; подать сигнал готовности
+    State -> BlockingExecutor : execute(noop handle)
+    BlockingExecutor -> BlockingExecutor : установить готовность и уведомить ожидающий поток
+    BlockingExecutor --> Caller : пробуждение из атомарного ожидания
+  end
+  BlockingTask -> State : извлечь результат
+  BlockingTask --> Caller : вернуть значение / void
+end
+
+note over BlockingExecutor
+  execute() только подаёт сигнал заблокированному потоку.
+  BlockingExecutor не возобновляет дескриптор noop-корутины.
+end note
+@enduml

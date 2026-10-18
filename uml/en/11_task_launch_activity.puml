@@ -1,0 +1,49 @@
+@startuml
+title CoroScope::launch — task creation and launch policy
+
+start
+:Invoke task factory with child CoroScope;
+:Allocate coroutine frame and shared completion state;
+if (Allocation / state initialization succeeded?) then (yes)
+else (no)
+  :Return allocation_failure;
+  stop
+endif
+
+if (Launch mode?) then (Immediate)
+  :Run coroutine body inline;
+elseif (Async) then (Async)
+  if (Executor available?) then (yes)
+    :Start task on selected executor;
+    if (Executor accepted task?) then (yes)
+    else (no)
+      :Destroy unstarted coroutine frame;
+      :Return enqueue error;
+      stop
+    endif
+  else (no)
+    :Destroy unstarted coroutine frame;
+    :Return executor_unavailable;
+    stop
+  endif
+elseif (Lazy) then (Lazy)
+  :Return task initially suspended;
+  :Caller may start or await task later;
+endif
+
+:Return task handle / result owner;
+:Task executes until completion, cancellation, or suspension;
+if (Awaiter registered?) then (yes)
+  :Publish result and schedule waiter;
+else (no)
+  :Publish result for later await;
+endif
+:Release coroutine frame and scope child ownership;
+stop
+
+note right
+  Immediate starts inline. Async starts through the selected executor.
+  Lazy does not enqueue work during launch. Cancellation is cooperative;
+  it does not forcibly interrupt a running coroutine.
+end note
+@enduml

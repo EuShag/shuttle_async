@@ -1,0 +1,71 @@
+@startuml
+title AsyncTask — launch modes and completion transfer
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Caller / parent coroutine" as Caller
+participant "CoroScope" as Scope
+participant "AsyncTask<T>\npromise" as Task
+participant "Executor" as Executor
+participant "Dispatcher" as Dispatcher
+participant "AsyncSharedState<T>" as State
+participant "Awaiting coroutine" as Awaiter
+
+Caller -> Scope : launch(task factory, options)
+Scope -> Task : create task with child scope
+
+alt LaunchMode::Immediate
+  Task -> Task : initial await_ready() == true
+  Task -> Caller : execute body inline
+  note over Caller,Task
+    Immediate means initial execution is inline.
+    The coroutine may still suspend and resume later.
+  end note
+else LaunchMode::Async
+  Task -> Task : initial await_ready() == false
+  Scope -> Executor : start(task handle)
+  Executor -> Dispatcher : enqueue task
+  Dispatcher -> Task : resume task
+else LaunchMode::Lazy
+  Task -> Task : remain initially suspended
+  note over Scope,Task : Not enqueued by launch() in Lazy mode.
+end
+
+... Task executes and may co_await ...
+
+Task -> State : store value / completion result
+Task -> State : signalReady()
+alt A waiter is registered
+  State -> Executor : execute(waiter handle)
+  alt Executor accepts waiter
+    Executor -> Dispatcher : enqueue continuation
+    Dispatcher -> Awaiter : resume
+  else Scheduling fails
+    State -> Awaiter : resume inline fallback
+    note right of State
+      Inline fallback can resume on a thread
+      other than the waiter's requested executor.
+    end note
+  end
+else No waiter registered
+  State -> State : mark Signaled for later await
+end
+
+Task -> Scope : final-suspend transfer selection
+alt Immediate mode and parent handle exists
+  Scope -> Task : destroy completed child frame
+  Task --> Caller : transfer to parent handle
+else Async / no eligible parent
+  Scope -> Task : destroy completed child frame
+  Task --> Dispatcher : transfer to current dispatcher
+end
+@enduml

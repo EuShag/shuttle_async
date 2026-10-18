@@ -1,0 +1,52 @@
+@startuml
+title BlockingTask<T>::get() — synchronous wait for async completion
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Calling OS thread" as Caller
+participant "BlockingTask<T>" as BlockingTask
+participant "AsyncTask<T>" as Task
+participant "AsyncSharedState<T>" as State
+participant "BlockingExecutor" as BlockingExecutor
+participant "Task coroutine" as Coroutine
+
+Caller -> BlockingTask : get()
+BlockingTask -> Task : validate task and claim single consumer
+BlockingTask -> Task : start if not already started
+BlockingTask -> Caller : install embedded BlockingExecutor in TLS
+BlockingTask -> State : check isSignaled()
+
+alt Result already available
+  State --> BlockingTask : Signaled
+  BlockingTask -> State : extract result
+  BlockingTask --> Caller : return value / void
+else Result not yet available
+  BlockingTask -> State : register noop_coroutine + BlockingExecutor
+  alt Completion won registration race
+    State --> BlockingTask : registration lost; continue inline
+  else Waiter registered
+    BlockingTask -> BlockingExecutor : waitForSignal()
+    ... calling OS thread blocks ...
+    Coroutine -> State : publish result; signalReady()
+    State -> BlockingExecutor : execute(noop handle)
+    BlockingExecutor -> BlockingExecutor : ready = true; notify waiter
+    BlockingExecutor --> Caller : wake from atomic wait
+  end
+  BlockingTask -> State : extract result
+  BlockingTask --> Caller : return value / void
+end
+
+note over BlockingExecutor
+  execute() only signals the blocking thread.
+  The noop coroutine handle is not resumed by BlockingExecutor.
+end note
+@enduml

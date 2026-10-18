@@ -1,0 +1,71 @@
+@startuml
+title AsyncTask — режимы запуска и передача управления при завершении
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Вызывающий код / родительская корутина" as Caller
+participant "Область корутин" as Scope
+participant "Асинхронная задача\nобещание результата" as Task
+participant "Исполнитель" as Executor
+participant "Диспетчер" as Dispatcher
+participant "Общее состояние" as State
+participant "Ожидающая корутина" as Awaiter
+
+Caller -> Scope : запустить фабрику задачи с параметрами
+Scope -> Task : создать задачу с дочерней областью
+
+alt Немедленный режим
+  Task -> Task : initial await_ready() == true
+  Task -> Caller : выполнить тело непосредственно
+  note over Caller,Task
+    В режиме Immediate начальное выполнение происходит непосредственно.
+    Корутина всё ещё может приостановиться и возобновиться позже.
+  end note
+else Асинхронный режим
+  Task -> Task : initial await_ready() == false
+  Scope -> Executor : start(task handle)
+  Executor -> Dispatcher : добавить задачу в очередь
+  Dispatcher -> Task : возобновить задачу
+else Отложенный режим
+  Task -> Task : изначально оставаться приостановленной
+  note over Scope,Task : В режиме Lazy метод launch() не добавляет задачу в очередь.
+end
+
+... Задача выполняется и может приостанавливаться через co_await ...
+
+Task -> State : сохранить значение / результат завершения
+Task -> State : signalReady()
+alt Ожидающая корутина зарегистрирована
+  State -> Executor : execute(waiter handle)
+  alt Исполнитель принимает ожидающую корутину
+    Executor -> Dispatcher : добавить продолжение в очередь
+    Dispatcher -> Awaiter : возобновить
+  else Ошибка планирования
+    State -> Awaiter : резервно возобновить непосредственно
+    note right of State
+      Резервное непосредственное возобновление может произойти в потоке,
+      отличном от запрошенного исполнителя ожидающей корутины.
+    end note
+  end
+else Ожидающая корутина не зарегистрирована
+  State -> State : пометить Signaled для последующего ожидания
+end
+
+Task -> Scope : выбрать передачу управления при финальной приостановке
+alt Немедленный режим и есть дескриптор родителя
+  Scope -> Task : уничтожить завершённый кадр дочерней корутины
+  Task --> Caller : передать управление родительскому дескриптору
+else Асинхронный режим / нет подходящего родителя
+  Scope -> Task : уничтожить завершённый кадр дочерней корутины
+  Task --> Dispatcher : передать управление текущему диспетчеру
+end
+@enduml

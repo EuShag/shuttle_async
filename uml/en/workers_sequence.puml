@@ -1,0 +1,57 @@
+@startuml
+title ThreadPoolExecutor — worker dispatch and shutdown
+
+participant "OS worker thread" as Thread
+participant "Dispatcher coroutine" as Dispatcher
+queue "Worker service queue" as Service
+queue "Local Chase-Lev deque" as Local
+queue "Global incoming queue" as Incoming
+participant "Peer worker deques" as Peers
+participant "Notifier" as Notifier
+participant "Task coroutine" as Task
+
+Thread -> Dispatcher : start with worker TLS context
+loop until stopping and accepted work is drained
+  Dispatcher -> Service : try_dequeue()
+  alt continuation/service task available
+    Service --> Dispatcher : handle
+  else no service task
+    Dispatcher -> Local : pop()
+    alt local task available
+      Local --> Dispatcher : handle
+    else no local task
+      Dispatcher -> Incoming : check count; try_dequeue()
+      alt incoming task available
+        Incoming --> Dispatcher : handle
+        Dispatcher -> Incoming : decrement count
+      else no incoming task
+        Dispatcher -> Peers : randomized scan; steal one handle
+        Peers --> Dispatcher : handle or no work
+      end
+    end
+  end
+
+  alt handle found
+    Dispatcher -> Task : symmetric transfer / resume
+    Task --> Dispatcher : suspends or completes
+  else pool is stopping and this worker has no work
+    Dispatcher -> Thread : exit dispatcher
+  else no work yet
+    Dispatcher -> Dispatcher : bounded spin with _mm_pause
+    Dispatcher -> Notifier : register sleeper and wait on generation
+    Notifier --> Dispatcher : notification or predicate becomes true
+    Dispatcher -> Dispatcher : atomically retire sleeper/wake reservation
+  end
+end
+
+note over Dispatcher,Notifier
+  Wake-ups are coalesced: an enqueue reserves a notification only for an
+  unreserved sleeping worker. The packed sleep-state atomic coordinates
+  sleeping-worker and outstanding-wakeup counts.
+end note
+
+note over Dispatcher,Peers
+  Work stealing is one coroutine handle per successful steal. The current
+  implementation scans randomized victim queues and has no batch-steal path.
+end note
+@enduml

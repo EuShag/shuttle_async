@@ -1,0 +1,53 @@
+@startuml
+title ThreadPoolExecutor::execute — task submission
+
+actor "Submitter" as Caller
+participant "ThreadPoolExecutor" as Pool
+participant "Current worker TLS" as TLS
+queue "Worker Chase-Lev deque" as Local
+queue "Global incoming queue" as Incoming
+participant "Packed sleep state" as SleepState
+participant "Notifier" as Notifier
+
+Caller -> Pool : execute(handle)
+  Pool -> Pool : reject null handle or stopping pool
+  alt Called by a worker in this pool
+  Pool -> TLS : read current WorkerContext
+  TLS --> Pool : worker context
+  Pool -> Local : try_push(handle)
+  alt local push succeeds
+    Local --> Pool : accepted
+  else local deque is full
+    Pool -> Incoming : increment incoming count, enqueue handle
+    alt enqueue succeeds
+      Incoming --> Pool : accepted
+    else enqueue fails
+      Pool -> Incoming : roll back incoming count
+      Pool --> Caller : queue_enqueue_failed
+    end
+  end
+else External submitter or local overflow
+  Pool -> Incoming : increment incoming count, enqueue handle
+  alt enqueue succeeds
+    Incoming --> Pool : accepted
+  else enqueue fails
+    Pool -> Incoming : roll back incoming count
+    Pool --> Caller : queue_enqueue_failed
+  end
+end
+
+opt work was accepted
+  Pool -> SleepState : reserve one wake if an unreserved sleeper exists
+  alt reservation acquired
+    Pool -> Notifier : notify_one()
+  else no sleeping worker needs a wake
+    note over Pool, SleepState : Workers are active, or another wake is already reserved.
+  end
+  Pool --> Caller : success
+end
+
+note over Incoming, Pool
+  Incoming count is incremented before publication. This ordering prevents
+  a consumer from removing an item before it has been counted.
+end note
+@enduml

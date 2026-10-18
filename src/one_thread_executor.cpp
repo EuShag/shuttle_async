@@ -40,7 +40,7 @@ namespace shuttle::async {
         }
 
         try {
-            m_worker = std::thread{&OneThreadExecutor::workerLoop, this};
+            m_worker = std::jthread{&OneThreadExecutor::workerLoop, this};
         } catch (const std::system_error&) {
             m_startError.store(Error::worker_start_failed, std::memory_order_release);
             m_startState.store(START_FAILED, std::memory_order_release);
@@ -103,7 +103,7 @@ namespace shuttle::async {
         return {};
     }
 
-    ThreadPoolDispatcherTask OneThreadExecutor::runDispatcher() {
+    DispatcherTask OneThreadExecutor::runDispatcher() {
         m_queueConsumerToken.emplace(m_queue);
         while (true) {
             std::coroutine_handle<> coroutine;

@@ -1,0 +1,127 @@
+@startuml
+title Async module — principal types and relationships
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+hide empty members
+
+package "shuttle::async" {
+  interface IExecutor {
+    +execute(handle) : Status
+    +currentExecutor() : IExecutor*
+    +currentDispatcher() : coroutine_handle
+  }
+
+  class ThreadPoolExecutor
+  class OneThreadExecutor
+  class WorkerContext
+  class "WorkerContext::WorkerExecutor" as WorkerExecutor
+  class DispatcherTask
+
+  class "AsyncTask<T>" as AsyncTask {
+    -coroutine_handle
+    -AsyncFuture<T>
+    +start(executor) : Status
+    +cancel()
+    +operator co_await()
+  }
+  class "AsyncSharedState<T>" as SharedState {
+    -result
+    -waiter handle
+    -waiter executor
+    -reference count
+    -completion state
+  }
+  class "AsyncFuture<T>" as AsyncFuture
+  class "AsyncPromise<T>" as AsyncPromise
+  class "AsyncStatePair<T>" as AsyncStatePair
+  class "AsyncStateFactory<T>" as AsyncStateFactory
+  class "AsyncResult<T>" as AsyncResult
+  class "CancellationToken<T>" as CancellationToken
+  class "BlockingTask<T>" as BlockingTask {
+    +start(executor) : Status
+    +cancel()
+    +get()
+  }
+  class BlockingExecutor {
+    +execute(handle) : Status
+    +waitForSignal()
+  }
+
+  class CoroScope {
+    +launch(...)
+    +joinTask()
+  }
+  class JoinableScope {
+    +launch(...)
+    +joinAll()
+  }
+  class JointerTask
+  class InitialAwaiter
+  class FinalAwaiter
+  class "Result<T> = std::expected<T, Error>" as Result
+  class "Error (enum)" as Error
+  class LaunchOptions
+  enum LaunchMode {
+    Immediate
+    Async
+    Lazy
+  }
+
+  ThreadPoolExecutor ..|> IExecutor
+  OneThreadExecutor ..|> IExecutor
+  WorkerExecutor ..|> IExecutor
+  WorkerContext *-- WorkerExecutor
+  ThreadPoolExecutor *-- WorkerContext
+  ThreadPoolExecutor ..> DispatcherTask : dispatcher
+  OneThreadExecutor ..> DispatcherTask : dispatcher
+
+  AsyncTask *-- AsyncFuture : owns
+  AsyncTask ..> AsyncStatePair : creates shared completion endpoints
+  AsyncStatePair *-- AsyncPromise : move-only endpoint
+  AsyncStatePair *-- AsyncFuture : move-only endpoint
+  AsyncStateFactory ..> SharedState : dynamically allocates
+  AsyncStateFactory ..> AsyncStatePair : returns endpoints
+  AsyncPromise ..> SharedState : publishes completion
+  AsyncFuture ..> SharedState : awaits / consumes
+  AsyncTask ..> InitialAwaiter : initial suspend
+  AsyncTask ..> FinalAwaiter : final transfer
+  AsyncTask ..> CoroScope : launch context
+  AsyncTask ..> AsyncResult : await result
+  CancellationToken ..> AsyncTask : observes task result
+  BlockingTask *-- AsyncTask : wraps
+  BlockingTask *-- BlockingExecutor : synchronous wait
+
+  JoinableScope --|> CoroScope
+  JoinableScope *-- BlockingExecutor : joinAll wait
+  CoroScope ..> JointerTask : join continuation
+
+  IExecutor ..> Result
+  AsyncTask ..> Result
+  CoroScope ..> Result
+  Result ..> Error
+  CoroScope ..> LaunchOptions
+  LaunchOptions *-- LaunchMode
+}
+
+note right of SharedState
+  The state is dynamically allocated by the factory,
+  not directly constructed as a public stack object.
+  A caller-provided allocator controls state storage.
+  Shared state has Pending, Suspended,
+  and Signaled synchronization states.
+  Cancellation is a separate cooperative flag,
+  not a shared-state transition.
+end note
+
+note right of BlockingExecutor
+  BlockingExecutor's execute() signals the
+  waiting thread; it does not resume a coroutine.
+end note
+@enduml

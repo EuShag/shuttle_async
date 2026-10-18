@@ -1,0 +1,36 @@
+@startuml
+title ThreadPoolExecutor — dispatcher decision flow
+
+start
+while (Stop requested and this worker has no local, service or incoming work?) is (no)
+  :Check service continuation queue;
+  if (Service continuation available?) then (yes)
+    :Resume selected coroutine by symmetric transfer;
+  else (no)
+    :Try local Chase-Lev deque pop;
+    if (Local task available?) then (yes)
+      :Resume selected coroutine by symmetric transfer;
+    else (no)
+      :Check incoming count and dequeue global task;
+      if (Incoming task available?) then (yes)
+        :Decrement incoming count;
+        :Resume selected coroutine by symmetric transfer;
+      else (no)
+        :Scan randomized peer queues;\nsteal one task on success;
+        if (Steal succeeded?) then (yes)
+          :Resume selected coroutine by symmetric transfer;
+        else (no)
+          :Spin briefly with processor pause;
+          if (Work became available?) then (yes)
+            :Retry scheduling;
+          else (no)
+            :Register as sleeping and wait on notifier generation;
+            :Retire sleep / wake reservation state;
+          endif
+        endif
+      endif
+    endif
+  endif
+endwhile (yes)
+stop
+@enduml

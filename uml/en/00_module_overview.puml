@@ -1,0 +1,59 @@
+@startuml
+title Async module — current component map
+
+left to right direction
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+package "shuttle::async" {
+  component "Task API" as TaskApi
+  component "Dynamically allocated\nshared task state" as CoroutineState
+  component "Executor API" as ExecutorApi
+  component "ThreadPoolExecutor" as ThreadPool
+  component "OneThreadExecutor" as OneThread
+  component "CoroScope /\nJoinableScope" as Scopes
+  component "Error API\nResult<T> / Status" as Errors
+
+  TaskApi --> CoroutineState : move-only promise/future\nendpoints and result state
+  TaskApi --> Scopes : launch ownership
+  TaskApi --> ExecutorApi : schedule / resume
+  Scopes --> TaskApi : child tasks and join task
+  Scopes --> ExecutorApi : schedule continuations
+  ThreadPool ..|> ExecutorApi
+  OneThread ..|> ExecutorApi
+  ThreadPool --> CoroutineState : dispatcher coroutine
+  OneThread --> CoroutineState : dispatcher coroutine
+  TaskApi ..> Errors : start / result
+  ExecutorApi ..> Errors : execute / create
+  Scopes ..> Errors : launch / join setup
+}
+
+cloud "C++23 standard library\ncoroutines, threads, atomics,\nexpected, jthread" as Std
+component "moodycamel::ConcurrentQueue" as ConcurrentQueue
+component "mimalloc" as Mimalloc
+component "ShuttleEngine consumer" as Engine
+component "Planned: Win32 Async I/O" as WinIO #LightYellow
+
+ExecutorApi ..> Std
+ThreadPool ..> ConcurrentQueue
+OneThread ..> ConcurrentQueue
+CoroutineState ..> Mimalloc : coroutine allocation
+ThreadPool ..> Mimalloc : executor/context allocation
+OneThread ..> Mimalloc : executor allocation
+Engine ..> TaskApi : consumes public API
+WinIO ..> ExecutorApi : proposed completion scheduling
+
+note right of TaskApi
+  Current source includes executors, tasks, scopes,
+  cooperative cancellation, and result-based errors.
+  No timer, IO API, or AsyncFlow is implemented here.
+  Win32 Async I/O is a roadmap item, not an implementation.
+end note
+@enduml

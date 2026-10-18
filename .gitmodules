@@ -1,0 +1,6 @@
+[submodule "external/mimalloc"]
+	path = external/mimalloc
+	url = https://github.com/microsoft/mimalloc
+[submodule "external/concurrentqueue"]
+	path = external/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue

@@ -1,0 +1,67 @@
+@startuml
+title AsyncSharedState — waiter registration / completion race
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+participant "Awaiting coroutine" as Awaiter
+participant "AsyncSharedState<T>" as State
+participant "Completing task" as Producer
+participant "Selected executor" as Executor
+participant "Dispatcher" as Dispatcher
+
+note over State
+  States: Pending, Suspended, Signaled.
+  Result data is written before signalReady().
+end note
+
+alt Completion wins before waiter registration
+  Producer -> State : write result
+  Producer -> State : CAS Pending -> Signaled
+  Awaiter -> State : await_ready() / inspect state
+  State --> Awaiter : Signaled; do not suspend
+  Awaiter -> Awaiter : consume result
+else Waiter registration wins
+  Awaiter -> State : store coroutine handle + executor
+  Awaiter -> State : CAS Pending -> Suspended
+  State --> Awaiter : registration succeeded
+  Awaiter -> Dispatcher : transfer control to dispatcher
+  ... task completes later ...
+  Producer -> State : write result
+  Producer -> State : CAS Suspended -> Signaled
+  State -> Executor : execute(waiter handle)
+  alt Scheduling succeeds
+    Executor -> Dispatcher : enqueue waiter
+    Dispatcher -> Awaiter : resume
+  else Scheduling fails
+    State -> Awaiter : resume inline fallback
+  end
+  Awaiter -> State : await_resume() / consume result
+else Completion races registration
+  par Awaiter attempts registration
+    Awaiter -> State : CAS Pending -> Suspended
+  else Producer attempts completion
+    Producer -> State : write result; CAS Pending -> Signaled
+  end
+  note over Awaiter,Producer
+    Only one Pending transition wins.
+    If registration loses, await_suspend returns the
+    awaiting coroutine handle for inline continuation.
+    If completion observes Suspended, it schedules
+    the stored waiter (or uses the inline fallback).
+  end note
+end
+
+note over Awaiter,Producer
+  Awaiting is single-consumer. Repeated/invalid consumer claims
+  are contract violations and terminate; cancellation is a separate flag.
+end note
+@enduml

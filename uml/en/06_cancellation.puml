@@ -1,0 +1,47 @@
+@startuml
+title AsyncTask — cooperative cancellation
+<style>
+document {
+  BackgroundColor #FFFFFF
+  BoxPadding 10
+  ParticipantPadding 10
+}
+title {
+  FontSize 16
+  FontColor #111111
+}
+</style>
+
+actor "Owner" as Owner
+participant "AsyncTask<T>" as Task
+participant "Task promise" as Promise
+participant "Running coroutine" as Coroutine
+participant "CancellationToken<T>" as Token
+participant "Awaiting consumer" as Consumer
+
+Owner -> Task : cancel() or release owning task
+Task -> Promise : set atomic cancellation flag
+note over Promise,Coroutine
+  Cancellation is a request, not forced interruption.
+  It does not destroy or forcibly resume the coroutine frame.
+end note
+
+alt Coroutine reaches a cancellationPoint
+  Coroutine -> Promise : inspect cancellation flag
+  Promise --> Coroutine : cancellation observed
+  Coroutine -> Coroutine : follow cancellation-aware path
+else Coroutine does not check cancellation
+  Coroutine -> Coroutine : continues executing normally
+end
+
+opt Consumer awaits via CancellationToken
+  Token -> Task : await task completion
+  Task -> Consumer : AsyncResult<T> includes cancellation status
+  Token -> Consumer : mark returned result as canceled
+end
+
+note over Owner,Consumer
+  Cancellation signaling is cooperative. Code must observe the token /
+  cancellation result and decide how to stop or clean up.
+end note
+@enduml

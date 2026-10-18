@@ -1,8 +1,14 @@
 #include <async/mi_allocator.hpp>
 #include <mimalloc.h>
 #include <mimalloc-new-delete.h>
+#include <utility>
 
 namespace shuttle::async {
+    MiAllocationStats* MiAllocatorBase::exchangeAllocationCounter(
+        MiAllocationStats* stats) noexcept {
+        return std::exchange(m_allocationStats, stats);
+    }
+
     void* MiAllocatorBase::operator new(std::size_t size) noexcept {
         return mi_malloc(size);
     }
@@ -15,6 +21,10 @@ namespace shuttle::async {
         // Используем mi_malloc_aligned, чтобы гарантировать, что тяжелые графические
         // структуры (например, матрицы трансформаций) лягут строго по границам кэш-линий CPU
         void* ptr = mi_malloc_aligned(bytes, alignment);
+        if (ptr != nullptr && m_allocationStats != nullptr) {
+            ++m_allocationStats->allocations;
+            m_allocationStats->bytes += bytes;
+        }
 
         // Так как исключения отключены, при нехватке памяти (OOM)
         // мы детерминированно возвращаем nullptr вместо throw std::bad_alloc
