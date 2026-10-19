@@ -35,7 +35,7 @@ cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-Use a separate build directory for Debug. With a multi-configuration generator, select the configuration using `--config Debug` or `--config Release`. The full scaling stress test can take several minutes and heavily load the CPU.
+Use a separate build directory for Debug. With a multi-configuration generator, select the configuration using `--config Debug` or `--config Release`. GCC Debug builds require `-foptimize-sibling-calls` to prevent stack growth during coroutine symmetric transfer; the CMake target adds this flag automatically. The full scaling stress test can take several minutes and heavily load the CPU.
 
 The standalone CMake build uses the vendored `external/` dependencies. `async::async` is the library target and exports the `include/` directory and C++23 requirement.
 

@@ -1,9 +1,6 @@
 #include <async/one_thread_executor.hpp>
-#include <async/try.hpp>
-
-#include <array>
-#include <atomic>
-#include <coroutine>
+#include <iostream>
+#include <ostream>
 #include <thread>
 
 #include "async/coro_scope.hpp"

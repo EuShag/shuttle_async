@@ -10,8 +10,6 @@
 #include <coroutine>
 #include <future>
 #include <functional>
-#include <iostream>
-#include <ostream>
 #include <type_traits>
 #include <utility>
 #include <thread>
@@ -985,16 +983,13 @@ namespace shuttle::async {
         /**
          * @if RU
          * @brief Дожидается всех дочерних задач, затем разрушает scope.
-         * @note Выводит строку диагностики в std::cout после joinAll().
          * @endif
          * @if EN
          * @brief Waits for all child tasks, then destroys the scope.
-         * @note Prints a diagnostic line to std::cout after joinAll().
          * @endif
          */
         ~JoinableScope() {
             joinAll();
-            std::cout << "JoinableScope destroyed" << std::endl;
         }
     private:
         BlockingExecutor m_blockingExecutor;

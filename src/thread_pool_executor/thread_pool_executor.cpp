@@ -2,7 +2,6 @@
 // Created by Shagu on 13.10.2026.
 //
 
-#include <iostream>
 #include <async/thread_pool_executor/thread_pool_executor.hpp>
 #include <async/try.hpp>
 
@@ -10,22 +9,18 @@
 
 namespace shuttle::async {
     Status WorkerContext::WorkerExecutor::execute(std::coroutine_handle<> coro) noexcept {
+        workerContext->m_serviceQueueSize.fetch_add(1, std::memory_order_relaxed);
         if (!workerContext->m_serviceQueue.try_enqueue(coro)) {
+            workerContext->m_serviceQueueSize.fetch_sub(1, std::memory_order_relaxed);
             return std::unexpected(Error::queue_enqueue_failed);
         }
-        workerContext->m_serviceQueueSize.fetch_add(1, std::memory_order_relaxed);
         wakeUpWorker();
         return {};
     }
 
     void WorkerContext::WorkerExecutor::wakeUpWorker() const noexcept {
         if (workerContext && threadPoolExecutor) [[likely]] {
-            // Извлекаем уникальный системный ID воркера в пуле (например, индекс в массиве потоков)
-            size_t const workerId = workerContext->m_id;
-
-            // Передаем команду пулу потоков: "Проснись, для воркера №X прилетели служебные задачи!"
-            // Метод пула атомарно взведет флаг и сделает WakeByAddressSingle / ReleaseSemaphore
-            threadPoolExecutor->signalWorkerWakeup(workerId);
+            threadPoolExecutor->m_notifier.notify_all();
         }
     }
 
@@ -34,8 +29,7 @@ namespace shuttle::async {
     // =================================================================
     [[nodiscard]] Result<MiUniquePtr<ThreadPoolExecutor>> ThreadPoolExecutor::create(
         size_t numWorkers,
-        WorkerCrashCallback&& crushCallback,
-        ThreadPoolDiagnostics* diagnostics) noexcept
+        WorkerCrashCallback&& crushCallback) noexcept
     {
         if (numWorkers == 0) {
             return std::unexpected(Error::invalid_worker_count);
@@ -71,8 +65,7 @@ namespace shuttle::async {
             std::move(localThreads),
             std::move(localContexts),
             std::move(localQueue),
-            std::move(crushCallback),
-            diagnostics
+            std::move(crushCallback)
         );
 
         if (!executor) [[unlikely]] {
@@ -129,9 +122,6 @@ namespace shuttle::async {
                 return {};
             }
 
-            if (m_diagnostics != nullptr) {
-                m_diagnostics->localEnqueues.fetch_add(1, std::memory_order_relaxed);
-            }
             notifyWorkAvailable();
         }
         else {
@@ -159,48 +149,14 @@ namespace shuttle::async {
             return std::unexpected(Error::queue_enqueue_failed);
         }
 
-        if (m_diagnostics != nullptr) {
-            m_diagnostics->incomingEnqueues.fetch_add(1, std::memory_order_relaxed);
-        }
         // Будим одного воркера пула, чтобы он выгреб задачу из глобального склада
         notifyWorkAvailable();
         return {};
     }
 
-    void ThreadPoolExecutor::signalWorkerWakeup(size_t) {
-        if (m_diagnostics != nullptr) {
-            m_diagnostics->workNotifications.fetch_add(1, std::memory_order_relaxed);
-        }
-        m_notifier.notify_all();
-    }
-
     void ThreadPoolExecutor::notifyWorkAvailable() noexcept {
-        uint64_t state = m_sleepState.load(std::memory_order_relaxed);
-        while ((state >> 32) > (state & SleepReservationMask)) {
-            if (m_sleepState.compare_exchange_weak(
-                    state, state + 1,
-                    std::memory_order_acq_rel, std::memory_order_relaxed)) {
-                if (m_diagnostics != nullptr) {
-                    m_diagnostics->workNotifications.fetch_add(
-                        1, std::memory_order_relaxed);
-                }
-                m_notifier.notify_one();
-                return;
-            }
-        }
-    }
-
-    void ThreadPoolExecutor::leaveSleepState() noexcept {
-        uint64_t state = m_sleepState.load(std::memory_order_relaxed);
-        for (;;) {
-            const uint64_t reservations = state & SleepReservationMask;
-            const uint64_t next = state - SleepingWorkerIncrement
-                - (reservations != 0 ? 1 : 0);
-            if (m_sleepState.compare_exchange_weak(
-                    state, next,
-                    std::memory_order_acq_rel, std::memory_order_relaxed)) {
-                return;
-            }
+        if (m_sleepingWorkerCount.load(std::memory_order_acquire) != 0) {
+            m_notifier.notify_one();
         }
     }
 
@@ -251,7 +207,6 @@ namespace shuttle::async {
         m_currentWorker = &ctx;
         ctx.m_dispatcher.resume();
         m_currentWorker = nullptr;
-        std::cout << "Working end!" << std::endl;
     }
 
     DispatcherTask ThreadPoolExecutor::runDispatcher(WorkerContext* ctx) {
@@ -280,11 +235,6 @@ namespace shuttle::async {
 
             // ШАГ 1: Локальная дека Chase-Lev (Молниеносный LIFO воркера)
             if (auto handle = ctx->m_queue.pop()) {
-                if (m_diagnostics != nullptr
-                    && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
-                    m_diagnostics->workers[ctx->m_id].localDequePops.fetch_add(
-                        1, std::memory_order_relaxed);
-                }
                 spin = 0;
                 co_yield handle;
                 continue;
@@ -296,11 +246,6 @@ namespace shuttle::async {
                 std::coroutine_handle globalCoro = nullptr;
                 if (m_incomingQueue.try_dequeue(*ctx->m_incomingQueueConsumerToken, globalCoro) && globalCoro) {
                     m_incomingCount.fetch_sub(1, std::memory_order_relaxed);
-                    if (m_diagnostics != nullptr
-                        && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
-                        m_diagnostics->workers[ctx->m_id].incomingDequeues.fetch_add(
-                            1, std::memory_order_relaxed);
-                    }
                     spin = 0;
                     co_yield globalCoro;
                     continue;
@@ -319,18 +264,8 @@ namespace shuttle::async {
                 size_t const victimId = (startVictimId + i) % m_numWorkers;
 
                 if (victimId != ctx->m_id) {
-                    if (m_diagnostics != nullptr
-                        && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
-                        m_diagnostics->workers[ctx->m_id].stealProbes.fetch_add(
-                            1, std::memory_order_relaxed);
-                    }
                     if (auto handle = m_workers[victimId].m_queue.steal()) {
                         stealCoroHandle = handle;
-                        if (m_diagnostics != nullptr
-                            && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
-                            m_diagnostics->workers[ctx->m_id].successfulSteals.fetch_add(
-                                1, std::memory_order_relaxed);
-                        }
                         break;
                     }
                 }
@@ -351,12 +286,7 @@ namespace shuttle::async {
             else {
                 // 2. ТЯЖЕЛЫЙ СТАТИЧЕСКИЙ СОН НА ВАШЕМ GENERATION NOTIFIER
                 // Поток ОС Windows безболезненно засыпает в анабиозе ядра ОС через WaitOnAddress
-                if (m_diagnostics != nullptr
-                    && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
-                    m_diagnostics->workers[ctx->m_id].idleWaits.fetch_add(
-                        1, std::memory_order_relaxed);
-                }
-                m_sleepState.fetch_add(1ULL << 32, std::memory_order_acq_rel);
+                m_sleepingWorkerCount.fetch_add(1, std::memory_order_acq_rel);
                 m_notifier.wait([this, &ctx]() noexcept {
                     if (m_stopping.load(std::memory_order_acquire)) [[unlikely]] return true;
 
@@ -370,12 +300,7 @@ namespace shuttle::async {
 
                     return false; // Всё пусто — продолжаем спать в ядре ОС
                 });
-                leaveSleepState();
-                if (m_diagnostics != nullptr
-                    && ctx->m_id < ThreadPoolDiagnostics::MaxWorkerCount) {
-                    m_diagnostics->workers[ctx->m_id].waitReturns.fetch_add(
-                        1, std::memory_order_relaxed);
-                }
+                m_sleepingWorkerCount.fetch_sub(1, std::memory_order_acq_rel);
                 spin = 0;
             }
         }

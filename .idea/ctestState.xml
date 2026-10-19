@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CidrCTestProjectState">
+    <ctestState>
+      <lineNumber testId="path:CMakeLists.txt test:async_shared_state" value="140" />
+      <lineNumber testId="path:CMakeLists.txt test:async_shared_state_stress" value="143" />
+      <lineNumber testId="path:CMakeLists.txt test:thread_pool_completion" value="127" />
+      <lineNumber testId="path:CMakeLists.txt test:thread_pool_scheduling_overhead" value="133" />
+      <lineNumber testId="path:CMakeLists.txt test:thread_pool_stress" value="124" />
+      <lineNumber testId="path:CMakeLists.txt test:thread_pool_wakeup_stress" value="137" />
+      <lineNumber testId="path:CMakeLists.txt test:thread_pool_work_stealing" value="130" />
+    </ctestState>
+  </component>
+</project>

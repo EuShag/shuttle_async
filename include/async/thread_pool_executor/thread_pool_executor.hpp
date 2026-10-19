@@ -8,12 +8,10 @@
 #include <concurrentqueue.h>
 #include <async/thread_pool_executor/coroutine_work_stealing_queue.hpp>
 #include <async/thread_pool_executor/notifier.hpp>
-#include <array>
 #include <atomic>
 #include <optional>
 #include <vector>
 #include <functional>
-#include <memory>
 
 #include <async/i_executor.hpp>
 #include <async/mi_allocator.hpp>
@@ -22,114 +20,6 @@
 namespace shuttle::async {
 
     class ThreadPoolExecutor;
-
-    /**
-     * @if RU
-     * @brief Необязательные lock-free счётчики планирования пула.
-     *
-     * Объект предоставляется пользователем и не владеется executor-ом; он должен
-     * оставаться жив до остановки и завершения worker-ов. При включённых worker
-     * счётчиках numWorkers не должен превышать MaxWorkerCount. Счётчики монотонны
-     * и предназначены для диагностики, а не для управления исполнением.
-     * @endif
-     * @if EN
-     * @brief Optional lock-free counters for pool scheduling.
-     *
-     * The object is provided by the user and is not owned by the executor; it
-     * must remain alive until shutdown and all workers have finished. When
-     * worker counters are enabled, numWorkers must not exceed MaxWorkerCount.
-     * Counters are monotonic and intended for diagnostics, not execution control.
-     * @endif
-     */
-    struct ThreadPoolDiagnostics {
-        /// @if RU
-        /// Максимальный поддерживаемый набор счётчиков worker-ов.
-        /// @endif
-        /// @if EN
-        /// Maximum supported set of worker counters.
-        /// @endif
-        static constexpr size_t MaxWorkerCount = 64;
-
-        /// @if RU
-        /// Атомарные статистические счётчики одного worker-а.
-        /// @endif
-        /// @if EN
-        /// Atomic statistics counters for one worker.
-        /// @endif
-        struct alignas(64) WorkerCounters {
-            /// @if RU
-            /// Число успешных извлечений из локальной deque.
-            /// @endif
-            /// @if EN
-            /// Number of successful dequeues from the local deque.
-            /// @endif
-            std::atomic<uint64_t> localDequePops{0};
-            /// @if RU
-            /// Число извлечений входящих задач.
-            /// @endif
-            /// @if EN
-            /// Number of dequeued incoming tasks.
-            /// @endif
-            std::atomic<uint64_t> incomingDequeues{0};
-            /// @if RU
-            /// Число попыток поиска задач у других worker-ов.
-            /// @endif
-            /// @if EN
-            /// Number of attempts to find tasks on other workers.
-            /// @endif
-            std::atomic<uint64_t> stealProbes{0};
-            /// @if RU
-            /// Число успешно украденных задач.
-            /// @endif
-            /// @if EN
-            /// Number of successfully stolen tasks.
-            /// @endif
-            std::atomic<uint64_t> successfulSteals{0};
-            /// @if RU
-            /// Число переходов к ожиданию работы.
-            /// @endif
-            /// @if EN
-            /// Number of transitions to waiting for work.
-            /// @endif
-            std::atomic<uint64_t> idleWaits{0};
-            /// @if RU
-            /// Число возвратов из ожидания.
-            /// @endif
-            /// @if EN
-            /// Number of returns from waiting.
-            /// @endif
-            std::atomic<uint64_t> waitReturns{0};
-        };
-
-        /// @if RU
-        /// Число локальных постановок из worker-потоков.
-        /// @endif
-        /// @if EN
-        /// Number of local enqueues from worker threads.
-        /// @endif
-        std::atomic<uint64_t> localEnqueues{0};
-        /// @if RU
-        /// Число постановок во входящую глобальную очередь.
-        /// @endif
-        /// @if EN
-        /// Number of enqueues to the global incoming queue.
-        /// @endif
-        std::atomic<uint64_t> incomingEnqueues{0};
-        /// @if RU
-        /// Число отправленных уведомлений о работе.
-        /// @endif
-        /// @if EN
-        /// Number of work notifications sent.
-        /// @endif
-        std::atomic<uint64_t> workNotifications{0};
-        /// @if RU
-        /// Счётчики каждого возможного worker-а; неиспользуемые слоты остаются нулевыми.
-        /// @endif
-        /// @if EN
-        /// Counters for every possible worker; unused slots remain zero.
-        /// @endif
-        std::array<WorkerCounters, MaxWorkerCount> workers{};
-    };
 
     /**
      * @if RU
@@ -284,8 +174,7 @@ namespace shuttle::async {
      * Все coroutine handles не владеющие: frame должны сохраняться вызывающей
      * стороной до завершения задачи; отправители не должны конкурентно обращаться
      * к executor-у во время его разрушения, и пул нельзя разрушать из собственного
-     * worker-а. Callback перемещается внутрь пула,
-     * diagnostics остаётся не владеющим указателем и должен пережить worker-ы.
+     * worker-а. Callback перемещается внутрь пула.
      * @endif
      * @if EN
      * @brief Multithreaded executor with local deques and work stealing.
@@ -296,8 +185,7 @@ namespace shuttle::async {
      * handles are non-owning: frames must remain alive under the caller's
      * ownership until task completion. Submitters must not access the executor
      * concurrently with its destruction, and the pool must not be destroyed by
-     * one of its own workers. The callback is moved into the pool; diagnostics
-     * remains a non-owning pointer and must outlive the workers.
+     * one of its own workers. The callback is moved into the pool.
      * @endif
      */
     class ThreadPoolExecutor final : public IExecutor {
@@ -336,7 +224,6 @@ namespace shuttle::async {
          * @brief Создаёт пул заданного размера и запускает его worker-ы.
          * @param numWorkers Число worker-ов; ноль даёт invalid_worker_count.
          * @param crushCallback Обработчик ошибки dispatcher-а worker-а.
-         * @param diagnostics Не владеющая статистика или nullptr; должна пережить пул.
          * @return Владеющий executor либо allocation_failure, invalid_worker_count
          *         или worker_start_failed.
          * @endif
@@ -344,15 +231,13 @@ namespace shuttle::async {
          * @brief Creates a pool of the specified size and starts its workers.
          * @param numWorkers Number of workers; zero yields invalid_worker_count.
          * @param crushCallback Handler for worker dispatcher errors.
-         * @param diagnostics Non-owning statistics object or nullptr; must outlive the pool.
          * @return Owning executor, or allocation_failure, invalid_worker_count,
          *         or worker_start_failed.
          * @endif
          */
         [[nodiscard]] static Result<MiUniquePtr<ThreadPoolExecutor>> create(
             size_t numWorkers,
-            WorkerCrashCallback&& crushCallback,
-            ThreadPoolDiagnostics* diagnostics = nullptr) noexcept;
+            WorkerCrashCallback&& crushCallback) noexcept;
 
         /// @if RU
         /// Останавливает пул и ожидает завершения всех принадлежащих ему jthread.
@@ -392,20 +277,6 @@ namespace shuttle::async {
          */
         [[nodiscard]] Status enqueueIncoming(std::coroutine_handle<> handle) noexcept;
 
-        /**
-         * @if RU
-         * @brief Сигнализирует worker-ам о потенциально доступной работе.
-         * @param size Идентификатор worker-а для которого запрашивается пробуждение.
-         * @note В текущей реализации параметр не используется для адресного пробуждения.
-         * @endif
-         * @if EN
-         * @brief Notifies workers that work may be available.
-         * @param size Worker identifier for which a wakeup is requested.
-         * @note The current implementation does not use the parameter for targeted wakeups.
-         * @endif
-         */
-        void signalWorkerWakeup(size_t size);
-
         /// @if RU
         /// Создаёт неинициализированную оболочку; используйте фабрику create().
         /// @endif
@@ -425,7 +296,6 @@ namespace shuttle::async {
          * @param workers Вектор контекстов worker-ов, передаваемый во владение.
          * @param incomingQueue Подготовленная общая очередь.
          * @param callback Обработчик ошибок worker-ов.
-         * @param diagnostics Не владеющий указатель на счётчики.
          * @endif
          * @if EN
          * @brief Constructs an executor from pre-initialized resources.
@@ -437,7 +307,6 @@ namespace shuttle::async {
          * @param workers Vector of worker contexts transferred to the executor.
          * @param incomingQueue Prepared shared queue.
          * @param callback Worker error handler.
-         * @param diagnostics Non-owning pointer to counters.
          * @endif
          */
         explicit ThreadPoolExecutor(
@@ -445,32 +314,15 @@ namespace shuttle::async {
             std::vector<std::jthread, MiAllocator<std::jthread>> && threads,
             std::vector<WorkerContext, MiAllocator<WorkerContext>> && workers,
             moodycamel::ConcurrentQueue<std::coroutine_handle<>>&& incomingQueue,
-            WorkerCrashCallback&& callback,
-            ThreadPoolDiagnostics* diagnostics = nullptr) noexcept :
+            WorkerCrashCallback&& callback) noexcept :
         m_incomingQueue {std::move(incomingQueue)},
         m_threads{std::move(threads)},
         m_workers{std::move(workers)},
         m_numWorkers{numWorkers},
-        m_diagnostics{diagnostics},
         m_crashCallback{std::move(callback)} {}
 
     private:
         friend class WorkerContext::WorkerExecutor;
-
-        /// @if RU
-        /// Нижние 32 бита sleep state хранят резервированные wakeup-ы.
-        /// @endif
-        /// @if EN
-        /// The low 32 bits of the sleep state store reserved wakeups.
-        /// @endif
-        static constexpr uint64_t SleepReservationMask = 0xffffffffULL;
-        /// @if RU
-        /// Инкремент верхней половины за одного спящего worker-а.
-        /// @endif
-        /// @if EN
-        /// Increment of the upper half for one sleeping worker.
-        /// @endif
-        static constexpr uint64_t SleepingWorkerIncrement = 1ULL << 32;
 
         /// @if RU
         /// Запускает worker-потоки после подготовки ресурсов.
@@ -480,19 +332,12 @@ namespace shuttle::async {
         /// @endif
         [[nodiscard]] Status init() noexcept;
         /// @if RU
-        /// Уведомляет одного ожидающего worker-а при наличии свободной резервации.
+        /// Уведомляет одного ожидающего worker-а, если такие есть.
         /// @endif
         /// @if EN
-        /// Notifies one waiting worker if a wakeup reservation is available.
+        /// Notifies one waiting worker, if any.
         /// @endif
         void notifyWorkAvailable() noexcept;
-        /// @if RU
-        /// Снимает состояние сна и использованную резервацию после пробуждения.
-        /// @endif
-        /// @if EN
-        /// Clears the sleep state and consumed reservation after wakeup.
-        /// @endif
-        void leaveSleepState() noexcept;
 
         /// @if RU
         /// Текущий WorkerContext этого OS-потока; используется fast path execute().
@@ -533,12 +378,12 @@ namespace shuttle::async {
         /// @endif
         alignas(64) std::atomic<uint64_t> m_incomingCount{ 0 };
         /// @if RU
-        /// Верхняя половина считает sleeping workers, нижняя — reserved wakeups.
+        /// Число worker-ов, которые готовятся ждать или уже ожидают работу.
         /// @endif
         /// @if EN
-        /// Upper half counts sleeping workers; lower half counts reserved wakeups.
+        /// Number of workers preparing to wait or already waiting for work.
         /// @endif
-        alignas(64) std::atomic<uint64_t> m_sleepState{ 0 };
+        alignas(64) std::atomic<uint64_t> m_sleepingWorkerCount{ 0 };
 
         /// @if RU
         /// Generation-based notification для спящих dispatcher-ов.
@@ -586,13 +431,6 @@ namespace shuttle::async {
         /// Number of workers owned by the pool.
         /// @endif
         size_t m_numWorkers{0};
-        /// @if RU
-        /// Не владеющие диагностические счётчики.
-        /// @endif
-        /// @if EN
-        /// Non-owning diagnostics counters.
-        /// @endif
-        ThreadPoolDiagnostics* m_diagnostics{nullptr};
         /// @if RU
         /// Callback ошибки dispatcher-а, перемещённый внутрь executor-а.
         /// @endif

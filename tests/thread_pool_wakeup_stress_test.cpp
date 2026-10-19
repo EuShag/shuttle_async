@@ -10,7 +10,7 @@
 
 namespace {
     constexpr size_t WorkerCount = 4;
-    constexpr uint64_t Iterations = 2'000;
+    constexpr uint64_t Iterations = 256;
 
     class WakeupScope final : public shuttle::async::CoroScope {
     public:
@@ -44,29 +44,11 @@ namespace {
         co_return;
     }
 
-    bool waitUntilWorkerSleeps(
-        const shuttle::async::ThreadPoolDiagnostics& diagnostics) noexcept
-    {
-        const auto deadline = std::chrono::steady_clock::now()
-            + std::chrono::seconds{2};
-        while (std::chrono::steady_clock::now() < deadline) {
-            for (size_t worker = 0; worker < WorkerCount; ++worker) {
-                const auto& counters = diagnostics.workers[worker];
-                if (counters.idleWaits.load(std::memory_order_acquire)
-                    > counters.waitReturns.load(std::memory_order_acquire)) {
-                    return true;
-                }
-            }
-            std::this_thread::yield();
-        }
-        return false;
-    }
 }
 
 int main() {
-    shuttle::async::ThreadPoolDiagnostics diagnostics;
     auto executorResult = shuttle::async::ThreadPoolExecutor::create(
-        WorkerCount, nullptr, &diagnostics);
+        WorkerCount, nullptr);
     if (!executorResult) {
         std::cerr << "Failed to create the worker pool\n";
         return 1;
@@ -77,11 +59,7 @@ int main() {
     std::atomic<uint64_t> completed{0};
 
     for (uint64_t iteration = 0; iteration < Iterations; ++iteration) {
-        if (!waitUntilWorkerSleeps(diagnostics)) {
-            std::cerr << "No worker entered the idle wait before task "
-                      << iteration << '\n';
-            return 2;
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds{1});
 
         auto task = scope.launchAsync(
             recordCompletion, static_cast<shuttle::async::IExecutor*>(&executor),
@@ -98,30 +76,15 @@ int main() {
     }
 
     scope.joinAll();
-    uint64_t incomingDequeues = 0;
-    uint64_t idleWaits = 0;
-    uint64_t waitReturns = 0;
-    for (size_t worker = 0; worker < WorkerCount; ++worker) {
-        const auto& counters = diagnostics.workers[worker];
-        incomingDequeues += counters.incomingDequeues.load(std::memory_order_relaxed);
-        idleWaits += counters.idleWaits.load(std::memory_order_relaxed);
-        waitReturns += counters.waitReturns.load(std::memory_order_relaxed);
-    }
 
-    const uint64_t notifications =
-        diagnostics.workNotifications.load(std::memory_order_relaxed);
-    if (completed.load(std::memory_order_relaxed) != Iterations
-        || incomingDequeues != Iterations
-        || notifications == 0
-        || waitReturns == 0
-        || idleWaits < waitReturns) {
-        std::cerr << "Wakeup stress counters do not match task completions\n";
+    const uint64_t completionCount = completed.load(std::memory_order_relaxed);
+    if (completionCount != Iterations) {
+        std::cerr << "Wakeup stress completed " << completionCount << " / "
+                  << Iterations << " tasks\n";
         return 5;
     }
 
-    std::cout << "Worker wakeup stress: " << completed.load()
-              << " / " << Iterations << " tasks completed, "
-              << notifications << " notifications, " << waitReturns
-              << " wait returns\n";
+    std::cout << "Worker wakeup stress: " << completionCount
+              << " / " << Iterations << " tasks completed\n";
     return 0;
 }

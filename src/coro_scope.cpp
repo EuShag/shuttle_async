@@ -46,7 +46,6 @@ namespace shuttle::async {
         CoroScope* const parent = m_parentScope;
         if (uint64_t const prev = parent->m_childCount.fetch_sub(1, std::memory_order_acq_rel);
             prev == DEATH_SIGNAL + 1) {
-            std::cout << "decrementChildCount() called" << std::endl;
             auto const resumeResult = parent->m_threadExecutor->execute(
                 std::coroutine_handle<>::from_address(
                     parent->m_jointerTaskHandle.load(std::memory_order_acquire)));

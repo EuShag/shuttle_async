@@ -204,12 +204,11 @@ namespace {
                  bool localProducer,
                  double& elapsedSeconds, uint64_t& stolenTasks,
                  size_t& workersUsed,
-                 shuttle::async::ThreadPoolDiagnostics& diagnostics,
                  uint64_t& allocationCount,
                  uint64_t& allocatedBytes,
                  bool collectMetrics) {
         auto executorResult = shuttle::async::ThreadPoolExecutor::create(
-            workerCount, nullptr, collectMetrics ? &diagnostics : nullptr);
+            workerCount, nullptr);
         if (!executorResult) {
             std::cerr << "Failed to create thread pool with " << workerCount << " workers\n";
             return false;
@@ -315,13 +314,12 @@ namespace {
                      bool localProducer) {
         std::array<double, MeasurementRuns> elapsed{};
         for (size_t run = 0; run < MeasurementRuns; ++run) {
-            shuttle::async::ThreadPoolDiagnostics diagnostics;
             uint64_t ignoredSteals = 0;
             size_t ignoredWorkers = 0;
             uint64_t ignoredAllocations = 0;
             uint64_t ignoredBytes = 0;
             if (!runOnce(workerCount, workIterations, batchSize, localProducer,
-                    elapsed[run], ignoredSteals, ignoredWorkers, diagnostics,
+                    elapsed[run], ignoredSteals, ignoredWorkers,
                     ignoredAllocations, ignoredBytes, false)) {
                 std::exit(1);
             }
@@ -337,10 +335,9 @@ namespace {
         size_t workersUsed = 0;
         uint64_t allocationCount = 0;
         uint64_t allocatedBytes = 0;
-        shuttle::async::ThreadPoolDiagnostics diagnostics;
-        double diagnosticRunSeconds = 0;
+        double metricsRunSeconds = 0;
         if (!runOnce(workerCount, workIterations, batchSize, localProducer,
-                diagnosticRunSeconds, stolenTasks, workersUsed, diagnostics,
+                metricsRunSeconds, stolenTasks, workersUsed,
                 allocationCount, allocatedBytes, true)) {
             std::exit(1);
         }
@@ -352,15 +349,6 @@ namespace {
             std::exit(1);
         }
 
-        uint64_t stealProbes = 0;
-        uint64_t idleWaits = 0;
-        uint64_t waitReturns = 0;
-        for (size_t worker = 0; worker < workerCount; ++worker) {
-            const auto& counters = diagnostics.workers[worker];
-            stealProbes += counters.stealProbes.load(std::memory_order_relaxed);
-            idleWaits += counters.idleWaits.load(std::memory_order_relaxed);
-            waitReturns += counters.waitReturns.load(std::memory_order_relaxed);
-        }
         const double median = elapsed[medianIndex];
         const uint64_t taskBatchSize = batchSize == 0 ? TaskCount : batchSize;
         const double estimatedBatchResidentBytes =
@@ -372,12 +360,6 @@ namespace {
                   << median << '\t'
                   << static_cast<uint64_t>(TaskCount / median) << '\t'
                   << stolenTasks << '\t' << workersUsed << '\t'
-                  << stealProbes << '\t'
-                  << diagnostics.workNotifications.load(std::memory_order_relaxed) << '\t'
-                  << idleWaits << '\t'
-                  << waitReturns << '\t'
-                  << diagnostics.localEnqueues.load(std::memory_order_relaxed) << '\t'
-                  << diagnostics.incomingEnqueues.load(std::memory_order_relaxed) << '\t'
                   << allocationCount << '\t'
                   << static_cast<double>(allocationCount) / TaskCount
                   << '\t' << allocatedBytes << '\t'
@@ -406,11 +388,9 @@ int main() {
     std::mt19937_64 random{0x7d0a4e9351ULL};
     std::shuffle(scenarios.begin(), scenarios.end(), random);
 
-    std::cout << "# timing: 3 uninstrumented runs; counters: separate instrumented run\n";
+    std::cout << "# timing: 3 runs; task and allocator metrics: separate instrumented run\n";
     std::cout << "mode\titerations\tworkers\tmedian_seconds\ttasks_per_second"
-                 "\tstolen_tasks\tworkers_used\tsteal_probes\twork_notifications"
-                 "\tidle_waits\twait_returns\tlocal_enqueues\tincoming_enqueues"
-                 "\tmimalloc_allocations\tallocations_per_task"
+                 "\tstolen_tasks\tworkers_used\tmimalloc_allocations\tallocations_per_task"
                  "\ttask_allocation_bytes\tbytes_per_task"
                  "\testimated_batch_resident_bytes\tbatch_size\n";
     for (const Scenario& scenario : scenarios) {

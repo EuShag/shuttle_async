@@ -45,6 +45,9 @@ add_executable(${ASYNC_SMOKE_TARGET} tests/test.cpp)
 add_executable(thread_pool_stress_test tests/thread_pool_stress_test.cpp)
 target_link_libraries(thread_pool_stress_test PRIVATE async::async)
 
+add_executable(thread_pool_completion_test tests/thread_pool_completion_test.cpp)
+target_link_libraries(thread_pool_completion_test PRIVATE async::async)
+
 add_executable(thread_pool_work_stealing_test tests/thread_pool_work_stealing_test.cpp)
 target_link_libraries(thread_pool_work_stealing_test PRIVATE async::async)
 
@@ -73,6 +76,10 @@ if(ASYNC_BUILD_EXAMPLES)
 endif()
 
 target_compile_features(async PUBLIC cxx_std_23)
+
+target_compile_options(async PUBLIC
+    "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-foptimize-sibling-calls>"
+)
 
 target_include_directories(async
     PUBLIC
@@ -117,6 +124,9 @@ if(ASYNC_BUILD_TESTS)
 
     add_test(NAME thread_pool_stress COMMAND thread_pool_stress_test)
     set_tests_properties(thread_pool_stress PROPERTIES TIMEOUT 900)
+
+    add_test(NAME thread_pool_completion COMMAND thread_pool_completion_test)
+    set_tests_properties(thread_pool_completion PROPERTIES TIMEOUT 30)
 
     add_test(NAME thread_pool_work_stealing COMMAND thread_pool_work_stealing_test)
     set_tests_properties(thread_pool_work_stealing PROPERTIES TIMEOUT 300)
