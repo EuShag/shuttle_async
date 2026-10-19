@@ -11,5 +11,6 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 /docs/api/
+/docs/uml/
 /build/uml/
 /cmake-build-*/uml/

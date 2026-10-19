@@ -26,11 +26,11 @@ endif()
 
 add_library(async STATIC
         src/awaiters.cpp
-    src/coro_scope.cpp
-    src/mi_allocator.cpp
-    src/one_thread_executor.cpp
-    src/thread_pool_executor/thread_pool_dispatcher_task.cpp
-    src/thread_pool_executor/thread_pool_executor.cpp
+        src/coro_scope.cpp
+        src/mi_allocator.cpp
+        src/one_thread_executor.cpp
+        src/thread_pool_executor/thread_pool_dispatcher_task.cpp
+        src/thread_pool_executor/thread_pool_executor.cpp
 )
 
 add_library(async::async ALIAS async)
@@ -78,46 +78,127 @@ endif()
 target_compile_features(async PUBLIC cxx_std_23)
 
 target_compile_options(async PUBLIC
-    "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-foptimize-sibling-calls>"
+        "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-foptimize-sibling-calls>"
 )
 
 target_include_directories(async
-    PUBLIC
+        PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/external/concurrentqueue
-    PRIVATE
+        PRIVATE
         ${PROJECT_SOURCE_DIR}/external/mimalloc/include
 )
 
 target_include_directories(${ASYNC_SMOKE_TARGET}
-    PRIVATE
+        PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/external/concurrentqueue
-
 )
 
 target_link_libraries(${ASYNC_SMOKE_TARGET} PRIVATE async::async)
-
 target_link_libraries(async PUBLIC mimalloc-static)
 
-add_custom_target(uml_png
-    COMMAND ${CMAKE_COMMAND}
-        -DUML_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/uml/en
-        -DUML_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/uml/en
-        -DPLANTUML_EXECUTABLE=${PLANTUML_EXECUTABLE}
-        -DPLANTUML_JAR=${PLANTUML_JAR}
-        -DJAVA_EXECUTABLE=${JAVA_EXECUTABLE}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/render_uml.cmake
-    COMMAND ${CMAKE_COMMAND}
-        -DUML_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/uml/ru
-        -DUML_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/uml/ru
-        -DPLANTUML_EXECUTABLE=${PLANTUML_EXECUTABLE}
-        -DPLANTUML_JAR=${PLANTUML_JAR}
-        -DJAVA_EXECUTABLE=${JAVA_EXECUTABLE}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/render_uml.cmake
-    COMMENT "Rendering English and Russian PlantUML diagrams to PNG"
-    VERBATIM
-)
+# ==============================================================================
+# СЕКЦИЯ PLANTUML СБОРКИ (Генерация в docs/uml/en и docs/uml/ru)
+# ==============================================================================
+
+# Автоматический поиск jar-ника в папке tools проекта, если не задан извне
+if(NOT PLANTUML_JAR)
+    set(PLANTUML_JAR "${CMAKE_CURRENT_SOURCE_DIR}/tools/plantuml.jar" CACHE FILEPATH "Path to plantuml.jar" FORCE)
+endif()
+
+# Валидация и выбор рендерера
+if(PLANTUML_EXECUTABLE AND EXISTS "${PLANTUML_EXECUTABLE}")
+    set(PLANTUML_BASE_CMD "${PLANTUML_EXECUTABLE}")
+elseif(JAVA_EXECUTABLE AND EXISTS "${JAVA_EXECUTABLE}" AND PLANTUML_JAR AND EXISTS "${PLANTUML_JAR}")
+    set(PLANTUML_BASE_CMD "${JAVA_EXECUTABLE}" -jar "${PLANTUML_JAR}")
+else()
+    message(WARNING "PlantUML or Java paths are invalid. 'uml_png' target will not be fully functional.")
+endif()
+
+if(PLANTUML_BASE_CMD)
+    set(UML_LANGUAGES "en" "ru")
+    set(ALL_GENERATED_PNGS "")
+
+    foreach(LANG IN LISTS UML_LANGUAGES)
+        set(LANG_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/uml/${LANG}")
+        set(LANG_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/docs/uml/${LANG}")
+
+        # Гарантируем, что папки docs/uml/en и docs/uml/ru существуют до сборки
+        file(MAKE_DIRECTORY "${LANG_OUT_DIR}")
+
+        # Находим исходные .puml файлы
+        file(GLOB PUML_FILES "${LANG_SRC_DIR}/*.puml")
+
+        foreach(SRC_DIAGRAM IN LISTS PUML_FILES)
+            get_filename_component(DIAGRAM_NAME ${SRC_DIAGRAM} NAME_WE)
+
+            # Ожидаемый путь к готовой картинке в папке docs/
+            set(OUT_PNG "${LANG_OUT_DIR}/${DIAGRAM_NAME}.png")
+
+            add_custom_command(
+                    OUTPUT "${OUT_PNG}"
+                    # Флаг -o указывает PlantUML выходную папку для сохранения PNG
+                    COMMAND ${PLANTUML_BASE_CMD} -tpng -charset UTF-8 -o "${LANG_OUT_DIR}" "${SRC_DIAGRAM}"
+                    DEPENDS "${SRC_DIAGRAM}"
+                    COMMENT "Rendering diagram: docs/uml/${LANG}/${DIAGRAM_NAME}.png"
+                    VERBATIM
+            )
+            list(APPEND ALL_GENERATED_PNGS "${OUT_PNG}")
+        endforeach()
+    endforeach()
+
+    if(ALL_GENERATED_PNGS)
+        add_custom_target(uml_png DEPENDS ${ALL_GENERATED_PNGS})
+    else()
+        add_custom_target(uml_png COMMAND ${CMAKE_COMMAND} -E echo "No .puml files found in uml/en or uml/ru")
+    endif()
+endif()
+
+# ==============================================================================
+# АВТОМАТИЧЕСКАЯ СБОРКА API-ДОКУМЕНТАЦИИ (ЧЕРЕЗ ВАШИ DOXYFILE)
+# ==============================================================================
+find_package(Doxygen QUIET)
+
+if(DOXYGEN_FOUND)
+    set(DOXYFILE_EN "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile")
+    set(DOXYFILE_RU "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.ru")
+
+    # Цель для английской документации
+    if(EXISTS "${DOXYFILE_EN}")
+        add_custom_target(docs_en
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/docs/api/en"
+                COMMAND ${DOXYGEN_EXECUTABLE} "${DOXYFILE_EN}"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                COMMENT "Building English documentation from Doxyfile"
+                VERBATIM
+        )
+        list(APPEND ALL_DOC_TARGETS docs_en)
+    endif()
+
+    # Цель для русской документации
+    if(EXISTS "${DOXYFILE_RU}")
+        add_custom_target(docs_ru
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/docs/api/ru"
+                COMMAND ${DOXYGEN_EXECUTABLE} "${DOXYFILE_RU}"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                COMMENT "Building Russian documentation from Doxyfile.ru"
+                VERBATIM
+        )
+        list(APPEND ALL_DOC_TARGETS docs_ru)
+    endif()
+
+    # Общая корневая цель 'docs', которая объединяет сборку языков
+    if(ALL_DOC_TARGETS)
+        add_custom_target(docs)
+        add_dependencies(docs ${ALL_DOC_TARGETS})
+        add_dependencies(docs uml_png)
+    endif()
+else()
+    message(STATUS "Doxygen executable not found. Documentation targets will not be available.")
+endif()
+
+# ==============================================================================
 
 if(ASYNC_BUILD_TESTS)
     enable_testing()
@@ -131,8 +212,7 @@ if(ASYNC_BUILD_TESTS)
     add_test(NAME thread_pool_work_stealing COMMAND thread_pool_work_stealing_test)
     set_tests_properties(thread_pool_work_stealing PROPERTIES TIMEOUT 300)
 
-    add_test(NAME thread_pool_scheduling_overhead
-        COMMAND thread_pool_scheduling_overhead_test)
+    add_test(NAME thread_pool_scheduling_overhead COMMAND thread_pool_scheduling_overhead_test)
     set_tests_properties(thread_pool_scheduling_overhead PROPERTIES TIMEOUT 300)
 
     add_test(NAME thread_pool_wakeup_stress COMMAND thread_pool_wakeup_stress_test)

@@ -490,13 +490,32 @@ namespace shuttle::async {
         /**
          * @if RU
          * @brief Создаёт child с Immediate режимом; выполнение начинается в текущем потоке.
+         *
+         * Выполнение корутины начинается синхронно в вызывающем контексте до первой точки приостановки.
+         *
+         * @warning **КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ ПО БЕЗОПАСНОСТИ:**
+         * Использовать оператор `co_await` внутри этой задачи разрешается **строго в рамках одного и того же потока**
+         * (например, совместно с ThreadPinnedExecutor / OneThreadExecutor). Ни в коем случае не допускайте миграции
+         * контекста выполнения на другие потоки или пулы потоков внутри Immediate-задач. Смена потока возобновления
+         * нарушит иерархию Structured Concurrency и **приведёт к неопределённому поведению (UB)**.
+         *
          * @tparam F Фабрика задачи; @tparam Args Типы аргументов фабрики.
          * @param func Фабрика задачи.
          * @param args Аргументы фабрики.
          * @return AsyncTask результата либо ошибка создания.
          * @endif
+         *
          * @if EN
          * @brief Creates an Immediate-mode child; execution begins on the current thread.
+         *
+         * Coroutine execution starts synchronously in the calling context until the first suspension point.
+         *
+         * @warning **CRITICAL SAFETY WARNING:**
+         * Using the `co_await` operator inside this task is allowed **strictly within the same thread context**
+         * (e.g., in conjunction with a ThreadPinnedExecutor / OneThreadExecutor). Thread migration to other threads
+         * or thread pools inside an Immediate task is strictly prohibited. Changing the execution context to a
+         * different thread will break Structured Concurrency invariants and **lead to undefined behavior (UB)**.
+         *
          * @tparam F Task factory; @tparam Args Factory argument types.
          * @param func Task factory.
          * @param args Factory arguments.
@@ -508,6 +527,7 @@ namespace shuttle::async {
         [[nodiscard]] auto launchImmediate(F&& func, Args&&... args) noexcept {
             return launch(std::forward<F>(func), {.mode = LaunchMode::Immediate, .explicitExecutor = nullptr}, std::forward<Args>(args)...);
         }
+
         /**
          * @if RU
          * @brief Создаёт child с Async режимом на указанном executor-е.
@@ -852,6 +872,15 @@ namespace shuttle::async {
 
         /// @if RU
         /// @brief Создаёт задачу в Immediate режиме.
+        ///
+        /// Выполнение корутины начинается синхронно в вызывающем контексте до первой точки приостановки.
+        ///
+        /// @warning **КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ ПО БЕЗОПАСНОСТИ:**
+        /// Использовать оператор `co_await` внутри этой задачи разрешается **строго в рамках одного и того же потока**
+        /// (например, совместно с ThreadPinnedExecutor / OneThreadExecutor). Ни в коем случае не допускайте миграции
+        /// контекста выполнения на другие потоки или пулы потоков внутри Immediate-задач. Смена потока возобновления
+        /// нарушит иерархию Structured Concurrency и **приведёт к неопределённому поведению (UB)**.
+        ///
         /// @tparam F Фабрика задачи; @tparam Args Типы её аргументов.
         /// @param func Фабрика задачи.
         /// @param args Аргументы фабрики.
@@ -859,6 +888,15 @@ namespace shuttle::async {
         /// @endif
         /// @if EN
         /// @brief Creates a task in Immediate mode.
+        ///
+        /// Coroutine execution starts synchronously in the calling context until the first suspension point.
+        ///
+        /// @warning **CRITICAL SAFETY WARNING:**
+        /// Using the `co_await` operator inside this task is allowed **strictly within the same thread context**
+        /// (e.g., in conjunction with a ThreadPinnedExecutor / OneThreadExecutor). Thread migration to other threads
+        /// or thread pools inside an Immediate task is strictly prohibited. Changing the execution context to a
+        /// different thread will break Structured Concurrency invariants and **lead to undefined behavior (UB)**.
+        ///
         /// @tparam F Task factory; @tparam Args Its argument types.
         /// @param func Task factory.
         /// @param args Factory arguments.
@@ -869,6 +907,7 @@ namespace shuttle::async {
         [[nodiscard]] auto launchImmediate(F&& func, Args&&... args) noexcept {
             return launch(std::forward<F>(func), {.mode = LaunchMode::Immediate, .explicitExecutor = nullptr}, std::forward<Args>(args)...);
         }
+
         /// @if RU
         /// @brief Создаёт задачу в Async режиме на указанном/pinned executor-е.
         /// @tparam F Фабрика задачи.

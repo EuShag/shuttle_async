@@ -21,11 +21,10 @@ namespace shuttle::async {
 
     std::coroutine_handle<> CoroScope::getTransferCoro(std::coroutine_handle<> coroutineHandle) const noexcept {
         // 1. Извлекаем родителя ЗАРАНЕЕ, пока фрейм корутины гарантированно цел
-        auto parent = m_parentScope->getCoroHandle();
         auto launchMode = m_launch_options.mode;
         coroutineHandle.destroy();
         // 3. Возвращаем родителя (или уходим в диспетчер, если это корень)
-        if (parent && launchMode == LaunchMode::Immediate) return parent;
+        if (launchMode == LaunchMode::Immediate) return std::noop_coroutine();
         return IExecutor::getCurrentDispatcherCoroutine();
     }
 
