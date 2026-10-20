@@ -3,7 +3,7 @@ name: Deploy Doxygen Documentation
 on:
   push:
     branches:
-      - main  # Или master, смотря как называется твоя главная ветка
+      - main  # Если твоя ветка называется master, замени main на master
 
 # Разрешаем скрипту публиковать данные на GitHub Pages
 permissions:
@@ -31,38 +31,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y doxygen graphviz
 
-      # Собираем английскую документацию
-      - name: Run Doxygen (EN)
-        run: doxygen Doxyfile
-
-      # Собираем русскую документацию
+      # Собираем русскую документацию (она создаст свой index.html в docs/api)
       - name: Run Doxygen (RU)
         run: doxygen Doxyfile.ru
 
-      # Настраиваем главную страницу на автоматический мгновенный переход к красивой документации
-      - name: Create Index Page
-        run: |
-          mkdir -p docs/api
-          touch docs/api/.nojekyll
-          cat << 'EOF' > docs/api/index.html
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <meta http-equiv="refresh" content="0; url=html/index.html" />
-          </head>
-          <body>
-              <p>Redirecting to documentation...</p>
-          </body>
-          </html>
-          EOF
-      
-      
+      # Отключаем Jekyll, чтобы GitHub Pages не ломал стили, фреймы и пути Doxygen
+      - name: Disable Jekyll
+        run: touch docs/api/.nojekyll
 
       # Настраиваем артефакты для GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Загружаем сгенерированную папку docs/api на сервера GitHub
+      # Загружаем содержимое docs/api, где Doxygen развернул интерфейс
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
