@@ -38,9 +38,6 @@ jobs:
             -DASYNC_BUILD_TESTS=OFF \
             -DASYNC_BUILD_EXAMPLES=OFF
 
-      - name: Render PlantUML Diagrams
-        run: cmake --build build --target uml_png
-
       - name: Run Doxygen Generation
         run: doxygen Doxyfile
 
