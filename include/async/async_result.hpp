@@ -23,6 +23,7 @@ namespace shuttle::async {
      * use the value after cancellation. This type does not synchronize access
      * and does not provide thread safety by itself.
      *
+     *
      * @tparam T Type of the result value.
      * @endif
      */
