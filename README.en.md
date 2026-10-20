@@ -104,14 +104,6 @@ A large-scale stress test of the scheduler was conducted on an **Intel Core i9-1
 - Improve reproducible benchmarks and verify scheduler changes across workload shapes and toolchains.
 - **Design and implement asynchronous I/O for Win32**, including cancellation, completion delivery, and integration with the executor API. This is planned; no Win32 I/O API is available yet.
 
-## Documentation
-
-- English PlantUML diagrams: `uml/en/README.md`
-- Russian PlantUML diagrams: `uml/ru/README.md`
-- [English Doxygen API reference](Doxyfile)
-- Generate HTML with `doxygen Doxyfile`; output: `docs/api/en/html/`.
-- Generate all diagram images with `cmake --build build --target uml_png`; PNGs are written to `build/uml/en/` and `build/uml/ru/`. Install Java and PlantUML first; see the language-specific diagram indexes.
-
 ## License
 
 MIT; see [`LICENSE`](LICENSE). Third-party dependencies retain their own licenses in `external/`.

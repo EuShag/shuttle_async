@@ -105,14 +105,6 @@ AsyncPromise<T> <-> AsyncSharedState<T> <-> AsyncFuture<T>
 - Улучшить воспроизводимость бенчмарков и сравнивать изменения планировщика на разных нагрузках и toolchain.
 - **Спроектировать и реализовать асинхронный ввод-вывод для Win32**, включая отмену, доставку завершения и интеграцию с executor API. Это план; API Win32 I/O пока нет.
 
-## Документация
-
-- Диаграммы PlantUML на русском: `uml/ru/README.md`
-- PlantUML diagrams in English: `uml/en/README.md`
-- [Русская справка Doxygen](Doxyfile.ru)
-- Сгенерировать HTML: `doxygen Doxyfile.ru`; результат будет в `docs/api/ru/html/`.
-- Сгенерировать изображения диаграмм: `cmake --build build --target uml_png`; PNG появятся в `build/uml/ru/` и `build/uml/en/`. Перед сборкой установите Java и PlantUML; инструкции есть в указателях диаграмм.
-
 ## Лицензия
 
 MIT; см. [`LICENSE`](LICENSE). У сторонних зависимостей в `external/` собственные лицензии.
