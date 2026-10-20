@@ -3,9 +3,8 @@ name: Deploy Doxygen Documentation
 on:
   push:
     branches:
-      - main  # Если твоя ветка называется master, замени main на master
+      - main  # Если твоя главная ветка называется master, замени main на master
 
-# Разрешаем скрипту публиковать данные на GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -25,25 +24,48 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Устанавливаем Doxygen и Graphviz (для красивых диаграмм связей классов)
+      # Устанавливаем Doxygen и Graphviz
       - name: Install Doxygen
         run: |
           sudo apt-get update
           sudo apt-get install -y doxygen graphviz
 
-      # Собираем русскую документацию (она создаст свой index.html в docs/api)
+      # Собираем русскую документацию
       - name: Run Doxygen (RU)
         run: doxygen Doxyfile.ru
 
-      # Отключаем Jekyll, чтобы GitHub Pages не ломал стили, фреймы и пути Doxygen
-      - name: Disable Jekyll
-        run: touch docs/api/.nojekyll
+      # Создаем автоматический редирект
+      - name: Create Index and Redirect
+        run: |
+          mkdir -p docs/api
+          touch docs/api/.nojekyll
+          
+          # Автоматически находим, куда Doxygen закинул главный файл, и делаем перенаправление
+          if [ -f "docs/api/ru/html/index.html" ]; then
+            TARGET_PATH="ru/html/index.html"
+          elif [ -f "docs/api/html/index.html" ]; then
+            TARGET_PATH="html/index.html"
+          else
+            TARGET_PATH="index.html"
+          fi
+          
+          cat << EOF > docs/api/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta http-equiv="refresh" content="0; url=${TARGET_PATH}" />
+          </head>
+          <body>
+              <p>Redirecting to shuttle_async documentation...</p>
+          </body>
+          </html>
+          EOF
 
       # Настраиваем артефакты для GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Загружаем содержимое docs/api, где Doxygen развернул интерфейс
+      # Загружаем собранную папку docs/api
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
