@@ -39,35 +39,23 @@ jobs:
       - name: Run Doxygen (RU)
         run: doxygen Doxyfile.ru
 
-      # Подготавливаем корневую страницу, чтобы можно было переключать языки
-      # Подготавливаем корневую страницу, чтобы можно было переключать языки
+      # Настраиваем главную страницу на автоматический мгновенный переход к красивой документации
       - name: Create Index Page
         run: |
           mkdir -p docs/api
-
-          # КЛЮЧЕВАЯ СТРОКА: Создаем флаг-файл .nojekyll, отключающий парсер гитхаба
           touch docs/api/.nojekyll
-
           cat << 'EOF' > docs/api/index.html
           <!DOCTYPE html>
           <html>
           <head>
-              <meta charset="UTF-8">
-              <title>shuttle_async Documentation</title>
-              <style>
-                  body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #1e1e1e; color: #fff; }
-                  a { color: #58a6ff; text-decoration: none; font-size: 24px; margin: 20px; display: inline-block; }
-                  a:hover { text-decoration: underline; }
-              </style>
+              <meta http-equiv="refresh" content="0; url=html/index.html" />
           </head>
           <body>
-              <h1>shuttle_async API Documentation</h1>
-              <p>Choose your language / Выберите язык:</p>
-              <a href="en/html/index.html">English Documentation</a>
-              <a href="ru/html/index.html">Русская документация</a>
+              <p>Redirecting to documentation...</p>
           </body>
           </html>
           EOF
+      
       
 
       # Настраиваем артефакты для GitHub Pages
