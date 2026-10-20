@@ -1,0 +1,80 @@
+name: Deploy Doxygen Documentation
+
+on:
+  push:
+    branches:
+      - main  # Или master, смотря как называется твоя главная ветка
+
+# Разрешаем скрипту публиковать данные на GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Устанавливаем Doxygen и Graphviz (для красивых диаграмм связей классов)
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      # Собираем английскую документацию
+      - name: Run Doxygen (EN)
+        run: doxygen Doxyfile
+
+      # Собираем русскую документацию
+      - name: Run Doxygen (RU)
+        run: doxygen Doxyfile.ru
+
+      # Подготавливаем корневую страницу, чтобы можно было переключать языки
+      - name: Create Index Page
+        run: |
+          mkdir -p docs/api
+          cat << 'EOF' > docs/api/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>shuttle_async Documentation</title>
+              <style>
+                  body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #1e1e1e; color: #fff; }
+                  a { color: #58a6ff; text-decoration: none; font-size: 24px; margin: 20px; display: inline-block; }
+                  a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <h1>shuttle_async API Documentation</h1>
+              <p>Choose your language / Выберите язык:</p>
+              <a href="en/html/index.html">English Documentation</a>
+              <a href="ru/html/index.html">Русская документация</a>
+          </body>
+          </html>
+          EOF
+
+      # Настраиваем артефакты для GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # Загружаем сгенерированную папку docs/api на сервера GitHub
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/api'
+
+      # Публикуем сайт в сеть
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
