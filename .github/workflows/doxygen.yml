@@ -40,9 +40,14 @@ jobs:
         run: doxygen Doxyfile.ru
 
       # Подготавливаем корневую страницу, чтобы можно было переключать языки
+      # Подготавливаем корневую страницу, чтобы можно было переключать языки
       - name: Create Index Page
         run: |
           mkdir -p docs/api
+
+          # КЛЮЧЕВАЯ СТРОКА: Создаем флаг-файл .nojekyll, отключающий парсер гитхаба
+          touch docs/api/.nojekyll
+
           cat << 'EOF' > docs/api/index.html
           <!DOCTYPE html>
           <html>
@@ -63,6 +68,7 @@ jobs:
           </body>
           </html>
           EOF
+      
 
       # Настраиваем артефакты для GitHub Pages
       - name: Setup Pages
