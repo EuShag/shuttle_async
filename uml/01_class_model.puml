@@ -11,8 +11,7 @@ title {
 </style>
 hide empty members
 
-package shuttle {
-    package async {
+package shuttle::async {
   interface IExecutor {
     +execute(handle) : Status
     +currentExecutor() : IExecutor*
@@ -109,7 +108,6 @@ package shuttle {
   Result ..> Error
   CoroScope ..> LaunchOptions
   LaunchOptions *-- LaunchMode
-}
 }
 
 note right of SharedState
