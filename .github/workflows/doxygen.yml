@@ -3,7 +3,7 @@ name: Deploy Doxygen Documentation
 on:
   push:
     branches:
-      - main  # Если твоя главная ветка называется master, замени main на master
+      - main  # Если ветка master, замени main на master
 
 permissions:
   contents: read
@@ -30,33 +30,34 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y doxygen graphviz
 
-      # Собираем русскую документацию
-      - name: Run Doxygen (RU)
-        run: doxygen Doxyfile.ru
+      # Собираем оба языка
+      - name: Run Doxygen (EN & RU)
+        run: |
+          doxygen Doxyfile
+          doxygen Doxyfile.ru
 
-      # Создаем автоматический редирект
-      - name: Create Index and Redirect
+      # Создаем красивую главную страницу для выбора языка
+      - name: Create Index Page
         run: |
           mkdir -p docs/api
           touch docs/api/.nojekyll
-          
-          # Автоматически находим, куда Doxygen закинул главный файл, и делаем перенаправление
-          if [ -f "docs/api/ru/html/index.html" ]; then
-            TARGET_PATH="ru/html/index.html"
-          elif [ -f "docs/api/html/index.html" ]; then
-            TARGET_PATH="html/index.html"
-          else
-            TARGET_PATH="index.html"
-          fi
-          
-          cat << EOF > docs/api/index.html
+          cat << 'EOF' > docs/api/index.html
           <!DOCTYPE html>
           <html>
           <head>
-              <meta http-equiv="refresh" content="0; url=${TARGET_PATH}" />
+              <meta charset="UTF-8">
+              <title>shuttle_async Documentation</title>
+              <style>
+                  body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #1e1e1e; color: #fff; }
+                  a { color: #58a6ff; text-decoration: none; font-size: 24px; margin: 20px; display: inline-block; padding: 10px 20px; border: 1px solid #58a6ff; border-radius: 5px; }
+                  a:hover { background: #58a6ff; color: #1e1e1e; }
+              </style>
           </head>
           <body>
-              <p>Redirecting to shuttle_async documentation...</p>
+              <h1>shuttle_async API Documentation</h1>
+              <p>Choose your language / Выберите язык:</p>
+              <a href="en/html/index.html">English</a>
+              <a href="ru/html/index.html">Русский</a>
           </body>
           </html>
           EOF
