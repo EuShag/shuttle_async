@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>shuttle_async: Класс shuttle::async::Notifier</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">shuttle_async
+   </div>
+   <div id="projectbrief">Задачи на корутинах C++23 и исполнители</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','Поиск',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('classshuttle_1_1async_1_1_notifier.html','','classshuttle_1_1async_1_1_notifier-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Загрузка...</div>
+<div class="SRStatus" id="Searching">Поиск...</div>
+<div class="SRStatus" id="NoMatches">Не найдено</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">Класс shuttle::async::Notifier</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p> 
+ <a href="#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="notifier_8hpp_source.html">notifier.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:acde7c5a399ffe190c2e739f725517e70" id="r_acde7c5a399ffe190c2e739f725517e70"><td class="memTemplParams" colspan="2">template&lt;typename Predicate&gt; </td></tr>
+<tr class="memitem:acde7c5a399ffe190c2e739f725517e70 template"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acde7c5a399ffe190c2e739f725517e70">wait</a> (Predicate &amp;&amp;predicate)</td></tr>
+<tr class="memitem:a2cdbe343eeb1dfa2d3b1182a7fc85102" id="r_a2cdbe343eeb1dfa2d3b1182a7fc85102"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2cdbe343eeb1dfa2d3b1182a7fc85102">notify_one</a> () noexcept</td></tr>
+<tr class="memdesc:a2cdbe343eeb1dfa2d3b1182a7fc85102"><td class="mdescLeft">&#160;</td><td class="mdescRight">Увеличивает поколение и пробуждает одного ожидающего, если он есть.  <br /></td></tr>
+<tr class="memitem:aeda1a616d53eedd2abfe700c6dc2f127" id="r_aeda1a616d53eedd2abfe700c6dc2f127"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeda1a616d53eedd2abfe700c6dc2f127">notify_all</a> () noexcept</td></tr>
+<tr class="memdesc:aeda1a616d53eedd2abfe700c6dc2f127"><td class="mdescLeft">&#160;</td><td class="mdescRight">Увеличивает поколение и пробуждает всех ожидающих.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pri-attribs" class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Закрытые данные</h2></td></tr>
+<tr class="memitem:a3b23b83bb45e2bded164dbbe852c63bc" id="r_a3b23b83bb45e2bded164dbbe852c63bc"><td class="memItemLeft" align="right" valign="top">std::atomic_uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3b23b83bb45e2bded164dbbe852c63bc">m_generation</a> {0}</td></tr>
+<tr class="memdesc:a3b23b83bb45e2bded164dbbe852c63bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Изменение поколения предотвращает потерю уведомления между проверкой и wait.  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>Потокобезопасное уведомление с ожиданием предиката через atomic wait.</p>
+<p>Уведомление не хранит число событий: вызывающая сторона должна проверять собственное атомарное состояние в predicate. Предикат может вызываться несколько раз; вызовы notify увеличивают поколение и пробуждают waiter-ов.   </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Методы</h2>
+<a id="aeda1a616d53eedd2abfe700c6dc2f127" name="aeda1a616d53eedd2abfe700c6dc2f127"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeda1a616d53eedd2abfe700c6dc2f127">&#9670;&#160;</a></span>notify_all()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void shuttle::async::Notifier::notify_all </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Увеличивает поколение и пробуждает всех ожидающих. </p>
+
+</div>
+</div>
+<a id="a2cdbe343eeb1dfa2d3b1182a7fc85102" name="a2cdbe343eeb1dfa2d3b1182a7fc85102"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2cdbe343eeb1dfa2d3b1182a7fc85102">&#9670;&#160;</a></span>notify_one()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void shuttle::async::Notifier::notify_one </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Увеличивает поколение и пробуждает одного ожидающего, если он есть. </p>
+
+</div>
+</div>
+<a id="acde7c5a399ffe190c2e739f725517e70" name="acde7c5a399ffe190c2e739f725517e70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acde7c5a399ffe190c2e739f725517e70">&#9670;&#160;</a></span>wait()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Predicate&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void shuttle::async::Notifier::wait </td>
+          <td>(</td>
+          <td class="paramtype">Predicate &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>predicate</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+<p>Блокирует текущий поток до истинности предиката. </p><dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Predicate</td><td>Вызываемый объект, безопасный для повторного вызова. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">predicate</td><td>Возвращает true, когда условие ожидания выполнено.   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Данные класса</h2>
+<a id="a3b23b83bb45e2bded164dbbe852c63bc" name="a3b23b83bb45e2bded164dbbe852c63bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b23b83bb45e2bded164dbbe852c63bc">&#9670;&#160;</a></span>m_generation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::atomic_uint64_t shuttle::async::Notifier::m_generation {0}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Изменение поколения предотвращает потерю уведомления между проверкой и wait. </p>
+
+</div>
+</div>
+<hr/>Объявления и описания членов класса находятся в файле:<ul>
+<li>include/async/thread_pool_executor/<a class="el" href="notifier_8hpp_source.html">notifier.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceshuttle.html">shuttle</a></li><li class="navelem"><a href="namespaceshuttle_1_1async.html">async</a></li><li class="navelem"><a href="classshuttle_1_1async_1_1_notifier.html">Notifier</a></li>
+    <li class="footer">Создано системой <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>

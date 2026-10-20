@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>shuttle_async: shuttle_async</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">shuttle_async
+   </div>
+   <div id="projectbrief">Задачи на корутинах C++23 и исполнители</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','Поиск',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('index.html','',''); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Загрузка...</div>
+<div class="SRStatus" id="Searching">Поиск...</div>
+<div class="SRStatus" id="NoMatches">Не найдено</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">shuttle_async </div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e_8ru"></a></p>
+<p><b>shuttle_async</b> — экспериментальная библиотека задач на корутинах C++23 и исполнителей, автор <b>Eugenii Shagunov</b>. В проект входят корутинные задачи, асинхронные и однопоточные исполнители, структурированные области дочерних задач, кооперативная отмена и динамически размещаемое общее состояние задачи.</p>
+<p>Проект активно разрабатывается и пока не является готовой к промышленной эксплуатации библиотекой. Тесты и замеры ниже описывают проверенные сценарии, но не доказывают абсолютную корректность или производительность.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md1"></a>
+Возможности</h1>
+<ul>
+<li><span class="tt">AsyncTask&lt;T&gt;</span> для асинхронной работы и <span class="tt">BlockingTask&lt;T&gt;</span> для явной синхронной границы.</li>
+<li><span class="tt">ThreadPoolExecutor</span> с локальными Chase–Lev-деками, общей входящей очередью, случайным выбором очереди для кражи и объединением уведомлений воркеров.</li>
+<li><span class="tt">OneThreadExecutor</span> для последовательного выполнения на выделенном потоке.</li>
+<li><span class="tt">CoroScope</span> и <span class="tt">JoinableScope</span> для управления временем жизни дочерних задач.</li>
+<li>Перемещаемые, но некопируемые <span class="tt">AsyncPromise&lt;T&gt;</span> и <span class="tt">AsyncFuture&lt;T&gt;</span> на базе динамически размещаемого <span class="tt">AsyncSharedState&lt;T&gt;</span>.</li>
+<li>Пользовательский аллокатор для размещения общего состояния и аллокации библиотеки через mimalloc.</li>
+<li>Ошибки операций на основе <span class="tt">std::expected</span> и кооперативная отмена задач.</li>
+</ul>
+<p>Таймеры и асинхронный ввод-вывод пока не реализованы. <b>Асинхронный ввод-вывод Win32 есть в планах</b>, но сейчас его API отсутствует.</p>
+<blockquote class="doxtable">
+<p>⚠️ <b>Критическое предупреждение по безопасности:</b> Метод <span class="tt">launchImmediate</span> выполняет корутину синхронно на вызывающем потоке до первой точки приостановки. Использовать <span class="tt">co_await</span> внутри такого режима разрешается <b>строго в рамках одного и того же потока (например, совместно с ThreadPinnedExecutor / OneThreadExecutor)</b>. Ни в коем случае не допускайте миграции на другие потоки или пулы потоков внутри Immediate-задач. Смена контекста выполнения на другой поток нарушит иерархию Structured Concurrency и <b>приведёт к неопределённому поведению (UB)</b>. </p>
+</blockquote>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md2"></a>
+Требования</h1>
+<ul>
+<li>Компилятор C++23 с поддержкой корутин и <span class="tt">std::expected</span>.</li>
+<li>CMake версии 3.21 или новее.</li>
+<li>Инициализированные Git submodules (mimalloc и concurrentqueue).</li>
+</ul>
+<p>Сейчас библиотека разрабатывается и тестируется на Windows с MinGW/CLion. Другие компиляторы и операционные системы требуют дополнительной проверки.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md3"></a>
+Сборка и тесты</h1>
+<p>В PowerShell или другой оболочке, где доступны CMake и компилятор C++23:</p>
+<div class="fragment"><div class="line">git submodule update --init --recursive</div>
+<div class="line">cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DASYNC_BUILD_TESTS=ON -DASYNC_BUILD_EXAMPLES=ON</div>
+<div class="line">cmake --build build --config Release</div>
+<div class="line">ctest --test-dir build -C Release --output-on-failure</div>
+</div><!-- fragment --><p>Для Debug используйте отдельную директорию сборки. В генераторе с несколькими конфигурациями укажите <span class="tt">--config Debug</span> или <span class="tt">--config Release</span>. При сборке Debug с GCC необходим флаг <span class="tt">-foptimize-sibling-calls</span>, чтобы избежать роста стека при symmetric transfer корутин; цель CMake добавляет его автоматически. Полный масштабный стресс-тест может занимать несколько минут и сильно нагружать процессор.</p>
+<p>Автономная сборка CMake использует зависимости из <span class="tt">external/</span>. Цель библиотеки — <span class="tt">async::async</span>; она экспортирует каталог <span class="tt">include/</span> и требование C++23.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md4"></a>
+Примеры</h1>
+<ul>
+<li><a href="examples/thread_pool_tasks.cpp"><span class="tt">examples/thread_pool_tasks.cpp</span></a> запускает <span class="tt">AsyncTask</span> в пуле потоков и получает результат.</li>
+<li><a href="examples/shared_state_custom_allocator.cpp"><span class="tt">examples/shared_state_custom_allocator.cpp</span></a> создаёт общее состояние с пользовательским аллокатором и использует перемещаемые promise/future endpoints.</li>
+</ul>
+<p>Сборка примеров:</p>
+<div class="fragment"><div class="line">cmake --build build --config Release --target async_thread_pool_example async_shared_state_example</div>
+</div><!-- fragment --><p><span class="tt">JoinableScope</span> ожидает завершения дочерних задач при явном join и при разрушении. Не захватывайте в корутинах ссылки на объекты, время жизни которых заканчивается раньше join. <span class="tt">BlockingTask::get()</span> блокирует текущий поток ОС; не вызывайте его из worker-а, если задача для продолжения требует тот же worker.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md5"></a>
+Архитектура и владение</h1>
+<div class="fragment"><div class="line">AsyncTask&lt;T&gt; / BlockingTask&lt;T&gt;</div>
+<div class="line">       | завершение</div>
+<div class="line">       v</div>
+<div class="line">AsyncPromise&lt;T&gt; &lt;-&gt; AsyncSharedState&lt;T&gt; &lt;-&gt; AsyncFuture&lt;T&gt;</div>
+<div class="line">       | планирование                       | продолжение waiter-а</div>
+<div class="line">       +------------------- IExecutor &lt;-----+</div>
+<div class="line">                               |</div>
+<div class="line">                    +----------+----------+</div>
+<div class="line">                    v                     v</div>
+<div class="line">           ThreadPoolExecutor      OneThreadExecutor</div>
+<div class="line">                    |</div>
+<div class="line">       локальные Chase–Lev-деки + общая входящая очередь</div>
+<div class="line">       случайная кража задач + объединение пробуждений</div>
+</div><!-- fragment --><p><span class="tt">AsyncSharedState</span> не создаётся пользователем как объект на стеке. <span class="tt">makeAsyncState</span> динамически выделяет блок состояния и возвращает move-only endpoints <span class="tt">AsyncPromise</span> и <span class="tt">AsyncFuture</span>. Пользовательский аллокатор позволяет контролировать размещение этого блока.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md6"></a>
+Тесты и замеры (Производительность)</h1>
+<p>Масштабный стресс-тест планировщика проводился на процессоре <b>Intel Core i9-14900KF</b> (24 ядра, 32 потока) в конфигурации компиляции <b>Release с максимальной оптимизацией (-O3)</b>. В коде полностью отсутствуют какие-либо логи или диагностический вывод, что позволило замерить чистую производительность lock-free алгоритмов.</p>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md7"></a>
+Профили нагрузки:</h2>
+<ol type="1">
+<li><b>Профиль «Много малых задач» (Small tasks):</b> 50 000 атомарных задач, 3 повтора. Тест на наносекундный оверхед координации и пропускную способность шины кэша.</li>
+<li><b>Профиль «Большие задачи» (Large tasks):</b> 5 000 тяжелых задач, 3 повтора. Тест на утилизацию чистой вычислительной мощности ядер при минимальном обращении к очередям.</li>
+<li><b>Профиль «Неравномерные задачи» (Uneven tasks):</b> 10 000 задач, 3 повтора. Смесь из 10% тяжелых и 90% легких задач. Эмуляция хаотичной нагрузки реального игрового кадра.</li>
+</ol>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md8"></a>
+Результаты финального Release-бенчмарка</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadLeft">Воркеры  </th><th class="markdownTableHeadLeft">Малые задачи (50k)  </th><th class="markdownTableHeadLeft">Ускорение  </th><th class="markdownTableHeadLeft">Большие задачи (5k)  </th><th class="markdownTableHeadLeft">Ускорение  </th><th class="markdownTableHeadLeft">Неравномерные (10k)  </th><th class="markdownTableHeadLeft">Ускорение  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>1</b>  </td><td class="markdownTableBodyLeft">0.889804 c  </td><td class="markdownTableBodyLeft">1.00x  </td><td class="markdownTableBodyLeft">32.8135 c  </td><td class="markdownTableBodyLeft">1.00x  </td><td class="markdownTableBodyLeft">13.6614 c  </td><td class="markdownTableBodyLeft">1.00x  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><b>2</b>  </td><td class="markdownTableBodyLeft">0.442065 c  </td><td class="markdownTableBodyLeft">2.01x  </td><td class="markdownTableBodyLeft">15.9649 c  </td><td class="markdownTableBodyLeft">2.06x  </td><td class="markdownTableBodyLeft">6.73722 c  </td><td class="markdownTableBodyLeft">2.03x  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>4</b>  </td><td class="markdownTableBodyLeft">0.202313 c  </td><td class="markdownTableBodyLeft">4.40x  </td><td class="markdownTableBodyLeft">8.22157 c  </td><td class="markdownTableBodyLeft">3.99x  </td><td class="markdownTableBodyLeft">3.37063 c  </td><td class="markdownTableBodyLeft">4.05x  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><b>8</b>  </td><td class="markdownTableBodyLeft">0.105425 c  </td><td class="markdownTableBodyLeft">8.44x  </td><td class="markdownTableBodyLeft">4.18599 c  </td><td class="markdownTableBodyLeft">7.84x  </td><td class="markdownTableBodyLeft">1.73479 c  </td><td class="markdownTableBodyLeft">7.87x  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>16</b>  </td><td class="markdownTableBodyLeft">0.061053 c  </td><td class="markdownTableBodyLeft">14.57x  </td><td class="markdownTableBodyLeft">2.36845 c  </td><td class="markdownTableBodyLeft">13.85x  </td><td class="markdownTableBodyLeft">1.00655 c  </td><td class="markdownTableBodyLeft">13.57x  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><b>31</b>  </td><td class="markdownTableBodyLeft">0.033878 c  </td><td class="markdownTableBodyLeft">26.26x  </td><td class="markdownTableBodyLeft">1.29606 c  </td><td class="markdownTableBodyLeft">25.32x  </td><td class="markdownTableBodyLeft">0.553842 c  </td><td class="markdownTableBodyLeft">24.67x  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>32</b>  </td><td class="markdownTableBodyLeft">0.033976 c  </td><td class="markdownTableBodyLeft">26.19x  </td><td class="markdownTableBodyLeft">1.26743 c  </td><td class="markdownTableBodyLeft">25.89x  </td><td class="markdownTableBodyLeft">0.540964 c  </td><td class="markdownTableBodyLeft">25.25x  </td></tr>
+</table>
+<p><em>Сводная таблица эффективности параллелизма (Все профили нагрузки). Медианное время выполнения в секундах и коэффициент ускорения относительно однопоточного режима.</em></p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md9"></a>
+Roadmap</h1>
+<ul>
+<li>Продолжить стресс-проверки времени жизни задач, остановки исполнителей, гонок пробуждения и путей отказа.</li>
+<li>Улучшить воспроизводимость бенчмарков и сравнивать изменения планировщика на разных нагрузках и toolchain.</li>
+<li><b>Спроектировать и реализовать асинхронный ввод-вывод для Win32</b>, включая отмену, доставку завершения и интеграцию с executor API. Это план; API Win32 I/O пока нет.</li>
+</ul>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
+Документация</h1>
+<ul>
+<li>Диаграммы PlantUML на русском: <span class="tt">uml/ru/README.md</span></li>
+<li>PlantUML diagrams in English: <span class="tt">uml/en/README.md</span></li>
+<li><a href="Doxyfile.ru">Русская справка Doxygen</a></li>
+<li>Сгенерировать HTML: <span class="tt">doxygen Doxyfile.ru</span>; результат будет в <span class="tt">docs/api/ru/html/</span>.</li>
+<li>Сгенерировать изображения диаграмм: <span class="tt">cmake --build build --target uml_png</span>; PNG появятся в <span class="tt">build/uml/ru/</span> и <span class="tt">build/uml/en/</span>. Перед сборкой установите Java и PlantUML; инструкции есть в указателях диаграмм.</li>
+</ul>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
+Лицензия</h1>
+<p>MIT; см. [<span class="tt">LICENSE</span>](LICENSE). У сторонних зависимостей в <span class="tt">external/</span> собственные лицензии. </p>
+</div></div><!-- PageDoc -->
+<a href="doxygen_crawl.html"></a>
+</div><!-- contents -->
+</div><!-- doc-content -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Создано системой <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>

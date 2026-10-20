@@ -1,0 +1,26 @@
+var structshuttle_1_1async_1_1_async_task_1_1promise__type =
+[
+    [ "CancellationAwaiter", "structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html", "structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter" ],
+    [ "SwitchExecutorAwaiter", "structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_switch_executor_awaiter.html", "structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_switch_executor_awaiter" ],
+    [ "promise_type", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a0cdcc1101ffac50b94195283aef22581", null ],
+    [ "promise_type", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a137d92cdb88df1bbe083b9920ebb2479", null ],
+    [ "promise_type", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#ad1899dc8978d81f66a7d03a4c7efbe18", null ],
+    [ "await_transform", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a4b933f2977c2a5f7c3dd8e3ee4336638", null ],
+    [ "await_transform", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a44dd1c719cb71e88c9bc5eb6246231d8", null ],
+    [ "await_transform", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a25fd0e97b4b14ece93f767abd1e657ab", null ],
+    [ "await_transform", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a97d0384f45d6a914247d77d88b97afd1", null ],
+    [ "await_transform", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#adce9f0649cf381a42f55c60240a38274", null ],
+    [ "await_transform", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a74492fad8969bfd78da8fa8fff452051", null ],
+    [ "final_suspend", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#abaa7858804835fed0c2f83257f1d2229", null ],
+    [ "get_return_object", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a726ac12668353b8d15dbaaa1df7ed706", null ],
+    [ "get_return_object_on_allocation_failure", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a3319efdbf3ea1118f7327f165cbde8e5", null ],
+    [ "initial_suspend", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a2b010df2e60df4217507c29588eb7239", null ],
+    [ "initializeState", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#ab3c07863cc44bc3c4c9c8b83f4e4cd9b", null ],
+    [ "operator delete", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a843d53ea8ee91c64a5119f9b4d8611da", null ],
+    [ "operator new", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#ab501d65bab9a4eae29278fbe4c470c36", null ],
+    [ "unhandled_exception", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a8b8dda6ef2ed1537dc762ea80610e554", null ],
+    [ "m_coroScope", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a955f71f342542f82cfb2ff691f46fb2b", null ],
+    [ "m_future", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#a70162c424b4ade3bc6adcc4480dbb093", null ],
+    [ "m_promise", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#aaf05993a5f5706caf749e93f244e337f", null ],
+    [ "m_stateCreationFailed", "structshuttle_1_1async_1_1_async_task_1_1promise__type.html#acd66d6c7ce054a952f6b38ac12f9ae24", null ]
+];

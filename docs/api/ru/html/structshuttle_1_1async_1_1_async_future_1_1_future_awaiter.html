@@ -1,0 +1,487 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>shuttle_async: Структура shuttle::async::AsyncFuture&lt; T &gt;::FutureAwaiter</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">shuttle_async
+   </div>
+   <div id="projectbrief">Задачи на корутинах C++23 и исполнители</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','Поиск',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html','','structshuttle_1_1async_1_1_async_future_1_1_future_awaiter-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Загрузка...</div>
+<div class="SRStatus" id="Searching">Поиск...</div>
+<div class="SRStatus" id="NoMatches">Не найдено</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">Структура shuttle::async::AsyncFuture&lt; T &gt;::FutureAwaiter</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p> 
+ <a href="#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="async__shared__state_8hpp_source.html">async_shared_state.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:af288e7d5549715b7e04e212255f77c4e" id="r_af288e7d5549715b7e04e212255f77c4e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af288e7d5549715b7e04e212255f77c4e">FutureAwaiter</a> (<a class="el" href="classshuttle_1_1async_1_1_async_shared_state.html">AsyncSharedState</a>&lt; T &gt; *state, <a class="el" href="classshuttle_1_1async_1_1_i_executor.html">IExecutor</a> *executor, std::atomic&lt; bool &gt; *<a class="el" href="classshuttle_1_1async_1_1_async_future.html#ac0afd980258f80a078c49f89a7f7f3f3">cancellationFlag</a>) noexcept</td></tr>
+<tr class="memdesc:af288e7d5549715b7e04e212255f77c4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Удерживает state и сохраняет executor/cancellation flag.  <br /></td></tr>
+<tr class="memitem:a5c3aa1727fe13a2e43a282fa650a4b0b" id="r_a5c3aa1727fe13a2e43a282fa650a4b0b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c3aa1727fe13a2e43a282fa650a4b0b">~FutureAwaiter</a> () noexcept</td></tr>
+<tr class="memdesc:a5c3aa1727fe13a2e43a282fa650a4b0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Освобождает принадлежащую awaiter-у ссылку на state.  <br /></td></tr>
+<tr class="memitem:a8f76a7a6a1a7118b04a1fd10ce3ef857" id="r_a8f76a7a6a1a7118b04a1fd10ce3ef857"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8f76a7a6a1a7118b04a1fd10ce3ef857">FutureAwaiter</a> (const <a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;)=delete</td></tr>
+<tr class="memdesc:a8f76a7a6a1a7118b04a1fd10ce3ef857"><td class="mdescLeft">&#160;</td><td class="mdescRight">Awaiter не копируется, чтобы исключить неоднозначное владение ссылкой.  <br /></td></tr>
+<tr class="memitem:a696db44bba788bf5f00ceb9c15bc61b6" id="r_a696db44bba788bf5f00ceb9c15bc61b6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a696db44bba788bf5f00ceb9c15bc61b6">operator=</a> (const <a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;)=delete</td></tr>
+<tr class="memitem:a53feafee36f9c92ca03953676c141520" id="r_a53feafee36f9c92ca03953676c141520"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a53feafee36f9c92ca03953676c141520">FutureAwaiter</a> (<a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a53feafee36f9c92ca03953676c141520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Перемещает ссылку и параметры ожидания.  <br /></td></tr>
+<tr class="memitem:ae606e8f1c9561ec967de9c9faa1d5e38" id="r_ae606e8f1c9561ec967de9c9faa1d5e38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae606e8f1c9561ec967de9c9faa1d5e38">operator=</a> (<a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:ae606e8f1c9561ec967de9c9faa1d5e38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Освобождает прежнюю ссылку и принимает awaiter источника.  <br /></td></tr>
+<tr class="memitem:ab6f41aa97ed6676cccb42cb1201708e6" id="r_ab6f41aa97ed6676cccb42cb1201708e6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab6f41aa97ed6676cccb42cb1201708e6">await_ready</a> () const noexcept</td></tr>
+<tr class="memitem:ad7b5b8a042a4cc1c21530e34577ef8b8" id="r_ad7b5b8a042a4cc1c21530e34577ef8b8"><td class="memItemLeft" align="right" valign="top">std::coroutine_handle&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7b5b8a042a4cc1c21530e34577ef8b8">await_suspend</a> (std::coroutine_handle&lt;&gt; handle) noexcept</td></tr>
+<tr class="memitem:a70356825d1835dddcb0eb9c57333114a" id="r_a70356825d1835dddcb0eb9c57333114a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a70356825d1835dddcb0eb9c57333114a">await_resume</a> () noexcept</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Открытые атрибуты</h2></td></tr>
+<tr class="memitem:a0f38ac40f03cc3ebb5004ae3f0b86a1d" id="r_a0f38ac40f03cc3ebb5004ae3f0b86a1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_async_shared_state.html">AsyncSharedState</a>&lt; T &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f38ac40f03cc3ebb5004ae3f0b86a1d">m_state</a> {nullptr}</td></tr>
+<tr class="memdesc:a0f38ac40f03cc3ebb5004ae3f0b86a1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Состояние, удерживаемое дополнительной ссылкой данного awaiter-а.  <br /></td></tr>
+<tr class="memitem:a8c0af5549c2f8702ffd117c5e64c2801" id="r_a8c0af5549c2f8702ffd117c5e64c2801"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_i_executor.html">IExecutor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c0af5549c2f8702ffd117c5e64c2801">m_executor</a> {nullptr}</td></tr>
+<tr class="memdesc:a8c0af5549c2f8702ffd117c5e64c2801"><td class="mdescLeft">&#160;</td><td class="mdescRight">Не владеющий executor для возобновления ожидающей coroutine.  <br /></td></tr>
+<tr class="memitem:a0ec6ac905cbfcae7a3e4807ec2f493ee" id="r_a0ec6ac905cbfcae7a3e4807ec2f493ee"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ec6ac905cbfcae7a3e4807ec2f493ee">parentCancelledFlag</a> {nullptr}</td></tr>
+<tr class="memdesc:a0ec6ac905cbfcae7a3e4807ec2f493ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Не владеющий флаг отмены родительской задачи.  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Подробное описание</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename T&gt;<br />
+struct shuttle::async::AsyncFuture&lt; T &gt;::FutureAwaiter</div><p>Awaiter, который регистрирует coroutine как waiter состояния.</p>
+<p>Хранит собственную ссылку на state. executor и cancellation flag — не владеющие указатели, их lifetime должен покрывать ожидание.   </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Конструктор(ы)</h2>
+<a id="af288e7d5549715b7e04e212255f77c4e" name="af288e7d5549715b7e04e212255f77c4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af288e7d5549715b7e04e212255f77c4e">&#9670;&#160;</a></span>FutureAwaiter() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::FutureAwaiter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_async_shared_state.html">AsyncSharedState</a>&lt; T &gt; *</td>          <td class="paramname"><span class="paramname"><em>state</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_i_executor.html">IExecutor</a> *</td>          <td class="paramname"><span class="paramname"><em>executor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::atomic&lt; bool &gt; *</td>          <td class="paramname"><span class="paramname"><em>cancellationFlag</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Удерживает state и сохраняет executor/cancellation flag. </p>
+
+</div>
+</div>
+<a id="a5c3aa1727fe13a2e43a282fa650a4b0b" name="a5c3aa1727fe13a2e43a282fa650a4b0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c3aa1727fe13a2e43a282fa650a4b0b">&#9670;&#160;</a></span>~FutureAwaiter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::~FutureAwaiter </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Освобождает принадлежащую awaiter-у ссылку на state. </p>
+
+</div>
+</div>
+<a id="a8f76a7a6a1a7118b04a1fd10ce3ef857" name="a8f76a7a6a1a7118b04a1fd10ce3ef857"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f76a7a6a1a7118b04a1fd10ce3ef857">&#9670;&#160;</a></span>FutureAwaiter() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::FutureAwaiter </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Awaiter не копируется, чтобы исключить неоднозначное владение ссылкой. </p>
+
+</div>
+</div>
+<a id="a53feafee36f9c92ca03953676c141520" name="a53feafee36f9c92ca03953676c141520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53feafee36f9c92ca03953676c141520">&#9670;&#160;</a></span>FutureAwaiter() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::FutureAwaiter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Перемещает ссылку и параметры ожидания. </p>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Методы</h2>
+<a id="ab6f41aa97ed6676cccb42cb1201708e6" name="ab6f41aa97ed6676cccb42cb1201708e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6f41aa97ed6676cccb42cb1201708e6">&#9670;&#160;</a></span>await_ready()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::await_ready </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+<dl class="section return"><dt>Возвращает</dt><dd>true для пустого Future либо уже сигнализированного состояния.   </dd></dl>
+
+</div>
+</div>
+<a id="a70356825d1835dddcb0eb9c57333114a" name="a70356825d1835dddcb0eb9c57333114a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70356825d1835dddcb0eb9c57333114a">&#9670;&#160;</a></span>await_resume()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::await_resume </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+<p>Возвращает <a class="el" href="structshuttle_1_1async_1_1_async_result.html">AsyncResult</a> после пробуждения. </p><dl class="section return"><dt>Возвращает</dt><dd>Для T — перемещённый результат или значение T{} при отмене; для void — только флаг отмены. </dd></dl>
+<dl class="section note"><dt>Заметки</dt><dd>Для отменённого T требуется default-initializable T.   </dd></dl>
+
+</div>
+</div>
+<a id="ad7b5b8a042a4cc1c21530e34577ef8b8" name="ad7b5b8a042a4cc1c21530e34577ef8b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7b5b8a042a4cc1c21530e34577ef8b8">&#9670;&#160;</a></span>await_suspend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::coroutine_handle <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::await_suspend </td>
+          <td>(</td>
+          <td class="paramtype">std::coroutine_handle&lt;&gt;</td>          <td class="paramname"><span class="paramname"><em>handle</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+<p>Регистрирует waiter или продолжает немедленно. </p><dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">handle</td><td>Ожидающая корутина. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Dispatcher handle, если ожидание зарегистрировано; иначе исходный handle для немедленного продолжения.   </dd></dl>
+
+</div>
+</div>
+<a id="a696db44bba788bf5f00ceb9c15bc61b6" name="a696db44bba788bf5f00ceb9c15bc61b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a696db44bba788bf5f00ceb9c15bc61b6">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp; <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae606e8f1c9561ec967de9c9faa1d5e38" name="ae606e8f1c9561ec967de9c9faa1d5e38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae606e8f1c9561ec967de9c9faa1d5e38">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp; <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Освобождает прежнюю ссылку и принимает awaiter источника. </p>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Данные класса</h2>
+<a id="a8c0af5549c2f8702ffd117c5e64c2801" name="a8c0af5549c2f8702ffd117c5e64c2801"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c0af5549c2f8702ffd117c5e64c2801">&#9670;&#160;</a></span>m_executor</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_i_executor.html">IExecutor</a>* <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::m_executor {nullptr}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Не владеющий executor для возобновления ожидающей coroutine. </p>
+
+</div>
+</div>
+<a id="a0f38ac40f03cc3ebb5004ae3f0b86a1d" name="a0f38ac40f03cc3ebb5004ae3f0b86a1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f38ac40f03cc3ebb5004ae3f0b86a1d">&#9670;&#160;</a></span>m_state</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_shared_state.html">AsyncSharedState</a>&lt;T&gt;* <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::m_state {nullptr}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Состояние, удерживаемое дополнительной ссылкой данного awaiter-а. </p>
+
+</div>
+</div>
+<a id="a0ec6ac905cbfcae7a3e4807ec2f493ee" name="a0ec6ac905cbfcae7a3e4807ec2f493ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ec6ac905cbfcae7a3e4807ec2f493ee">&#9670;&#160;</a></span>parentCancelledFlag</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">std::atomic&lt;bool&gt;* <a class="el" href="classshuttle_1_1async_1_1_async_future.html">shuttle::async::AsyncFuture</a>&lt; T &gt;::FutureAwaiter::parentCancelledFlag {nullptr}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Не владеющий флаг отмены родительской задачи. </p>
+
+</div>
+</div>
+<hr/>Объявления и описания членов структуры находятся в файле:<ul>
+<li>include/async/<a class="el" href="async__shared__state_8hpp_source.html">async_shared_state.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceshuttle.html">shuttle</a></li><li class="navelem"><a href="namespaceshuttle_1_1async.html">async</a></li><li class="navelem"><a href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a></li><li class="navelem"><a href="structshuttle_1_1async_1_1_async_future_1_1_future_awaiter.html">FutureAwaiter</a></li>
+    <li class="footer">Создано системой <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>

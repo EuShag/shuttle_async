@@ -1,0 +1,453 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>shuttle_async: Класс shuttle::async::FinalAwaiter</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">shuttle_async
+   </div>
+   <div id="projectbrief">Задачи на корутинах C++23 и исполнители</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','Поиск',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('classshuttle_1_1async_1_1_final_awaiter.html','','classshuttle_1_1async_1_1_final_awaiter-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Загрузка...</div>
+<div class="SRStatus" id="Searching">Поиск...</div>
+<div class="SRStatus" id="NoMatches">Не найдено</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">Класс shuttle::async::FinalAwaiter</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p> 
+ <a href="#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="awaiters_8hpp_source.html">awaiters.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Открытые типы</h2></td></tr>
+<tr class="memitem:a6665190c162f856be9e75d70ea92fb5e" id="r_a6665190c162f856be9e75d70ea92fb5e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a> = void(*)(void*) noexcept</td></tr>
+<tr class="memdesc:a6665190c162f856be9e75d70ea92fb5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type-erased функция удержания или освобождения состояния.  <br /></td></tr>
+<tr class="memitem:a135000a14c574a014bc4bd153f4af609" id="r_a135000a14c574a014bc4bd153f4af609"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a135000a14c574a014bc4bd153f4af609">StateCompletion</a> = bool(*)(void*) noexcept</td></tr>
+<tr class="memdesc:a135000a14c574a014bc4bd153f4af609"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type-erased функция публикации завершения; true означает пробуждённого waiter.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:a084f00c0be6a531bf657171ab662ca7f" id="r_a084f00c0be6a531bf657171ab662ca7f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a084f00c0be6a531bf657171ab662ca7f">FinalAwaiter</a> (<a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> *scope, void *state, <a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a> retainState, <a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a> releaseState, <a class="el" href="#a135000a14c574a014bc4bd153f4af609">StateCompletion</a> completeState) noexcept</td></tr>
+<tr class="memitem:ae7fcffb7f2e2b9eaeb88178ef3e18647" id="r_ae7fcffb7f2e2b9eaeb88178ef3e18647"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7fcffb7f2e2b9eaeb88178ef3e18647">await_ready</a> () const noexcept</td></tr>
+<tr class="memdesc:ae7fcffb7f2e2b9eaeb88178ef3e18647"><td class="mdescLeft">&#160;</td><td class="mdescRight">Всегда использует await_suspend, чтобы выполнить финализацию.  <br /></td></tr>
+<tr class="memitem:aabaa08d04f921687ed23eb60f2562963" id="r_aabaa08d04f921687ed23eb60f2562963"><td class="memItemLeft" align="right" valign="top">std::coroutine_handle&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aabaa08d04f921687ed23eb60f2562963">await_suspend</a> (std::coroutine_handle&lt;&gt; handle) const noexcept</td></tr>
+<tr class="memdesc:aabaa08d04f921687ed23eb60f2562963"><td class="mdescLeft">&#160;</td><td class="mdescRight">Публикует завершение до уничтожения frame и выполняет symmetric transfer.  <br /></td></tr>
+<tr class="memitem:abc4251a494a748cb53eaa61b1e00bba9" id="r_abc4251a494a748cb53eaa61b1e00bba9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc4251a494a748cb53eaa61b1e00bba9">await_resume</a> () const noexcept</td></tr>
+<tr class="memdesc:abc4251a494a748cb53eaa61b1e00bba9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Завершает финальную стадию без дополнительной работы.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pri-attribs" class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Закрытые данные</h2></td></tr>
+<tr class="memitem:a1bef77346d724b32d9163ad2bd3a4dae" id="r_a1bef77346d724b32d9163ad2bd3a4dae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1bef77346d724b32d9163ad2bd3a4dae">m_scope</a> { nullptr }</td></tr>
+<tr class="memdesc:a1bef77346d724b32d9163ad2bd3a4dae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scope-владелец coroutine; его lifetime охватывает финализацию frame.  <br /></td></tr>
+<tr class="memitem:a304ba0aef7a08c10fcc8472d98589624" id="r_a304ba0aef7a08c10fcc8472d98589624"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a304ba0aef7a08c10fcc8472d98589624">m_state</a> { nullptr }</td></tr>
+<tr class="memdesc:a304ba0aef7a08c10fcc8472d98589624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Не владеющий адрес состояния, удерживаемый retain/release callbacks.  <br /></td></tr>
+<tr class="memitem:a45adaf564ba4f08f8a47ac8a3b40d7cf" id="r_a45adaf564ba4f08f8a47ac8a3b40d7cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a45adaf564ba4f08f8a47ac8a3b40d7cf">m_retainState</a> { nullptr }</td></tr>
+<tr class="memdesc:a45adaf564ba4f08f8a47ac8a3b40d7cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type-erased операции управления ссылкой state.  <br /></td></tr>
+<tr class="memitem:a5e5bb5504e4d14d892412f3907680e6f" id="r_a5e5bb5504e4d14d892412f3907680e6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e5bb5504e4d14d892412f3907680e6f">m_releaseState</a> { nullptr }</td></tr>
+<tr class="memitem:a2a0ce3669495e112bc57af1218ec1d93" id="r_a2a0ce3669495e112bc57af1218ec1d93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a135000a14c574a014bc4bd153f4af609">StateCompletion</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a0ce3669495e112bc57af1218ec1d93">m_completeState</a> { nullptr }</td></tr>
+<tr class="memdesc:a2a0ce3669495e112bc57af1218ec1d93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type-erased публикация завершения до уничтожения frame.  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>Финализирует <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a> и передаёт управление scope/исполнителю.</p>
+<p>Перед уничтожением frame временно удерживает shared state и публикует завершение. Callback-ы состояния передаются как type-erased функции, чтобы awaiter не зависел от параметра шаблона <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>.   </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Определения типов</h2>
+<a id="a135000a14c574a014bc4bd153f4af609" name="a135000a14c574a014bc4bd153f4af609"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a135000a14c574a014bc4bd153f4af609">&#9670;&#160;</a></span>StateCompletion</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a135000a14c574a014bc4bd153f4af609">shuttle::async::FinalAwaiter::StateCompletion</a> = bool(*)(void*) noexcept</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Type-erased функция публикации завершения; true означает пробуждённого waiter. </p>
+
+</div>
+</div>
+<a id="a6665190c162f856be9e75d70ea92fb5e" name="a6665190c162f856be9e75d70ea92fb5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6665190c162f856be9e75d70ea92fb5e">&#9670;&#160;</a></span>StateOperation</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">shuttle::async::FinalAwaiter::StateOperation</a> = void(*)(void*) noexcept</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Type-erased функция удержания или освобождения состояния. </p>
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Конструктор(ы)</h2>
+<a id="a084f00c0be6a531bf657171ab662ca7f" name="a084f00c0be6a531bf657171ab662ca7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a084f00c0be6a531bf657171ab662ca7f">&#9670;&#160;</a></span>FinalAwaiter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">shuttle::async::FinalAwaiter::FinalAwaiter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> *</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>state</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a></td>          <td class="paramname"><span class="paramname"><em>retainState</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a></td>          <td class="paramname"><span class="paramname"><em>releaseState</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a135000a14c574a014bc4bd153f4af609">StateCompletion</a></td>          <td class="paramname"><span class="paramname"><em>completeState</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scope</td><td>Не владеющий scope coroutine frame; nullptr допустим для задачи без scope. </td></tr>
+    <tr><td class="paramname">state</td><td>Не владеющий адрес shared state. </td></tr>
+    <tr><td class="paramname">retainState</td><td>Функция временного удержания state. </td></tr>
+    <tr><td class="paramname">releaseState</td><td>Функция освобождения временной ссылки. </td></tr>
+    <tr><td class="paramname">completeState</td><td>Публикует завершение и сообщает, был ли waiter.   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Методы</h2>
+<a id="ae7fcffb7f2e2b9eaeb88178ef3e18647" name="ae7fcffb7f2e2b9eaeb88178ef3e18647"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7fcffb7f2e2b9eaeb88178ef3e18647">&#9670;&#160;</a></span>await_ready()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool shuttle::async::FinalAwaiter::await_ready </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Всегда использует await_suspend, чтобы выполнить финализацию. </p>
+
+</div>
+</div>
+<a id="abc4251a494a748cb53eaa61b1e00bba9" name="abc4251a494a748cb53eaa61b1e00bba9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc4251a494a748cb53eaa61b1e00bba9">&#9670;&#160;</a></span>await_resume()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void shuttle::async::FinalAwaiter::await_resume </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Завершает финальную стадию без дополнительной работы. </p>
+
+</div>
+</div>
+<a id="aabaa08d04f921687ed23eb60f2562963" name="aabaa08d04f921687ed23eb60f2562963"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabaa08d04f921687ed23eb60f2562963">&#9670;&#160;</a></span>await_suspend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::coroutine_handle shuttle::async::FinalAwaiter::await_suspend </td>
+          <td>(</td>
+          <td class="paramtype">std::coroutine_handle&lt;&gt;</td>          <td class="paramname"><span class="paramname"><em>handle</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Публикует завершение до уничтожения frame и выполняет symmetric transfer. </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">handle</td><td>Завершающийся coroutine handle. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Handle продолжения либо noop handle.   </dd></dl>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Данные класса</h2>
+<a id="a2a0ce3669495e112bc57af1218ec1d93" name="a2a0ce3669495e112bc57af1218ec1d93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a0ce3669495e112bc57af1218ec1d93">&#9670;&#160;</a></span>m_completeState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a135000a14c574a014bc4bd153f4af609">StateCompletion</a> shuttle::async::FinalAwaiter::m_completeState { nullptr }</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Type-erased публикация завершения до уничтожения frame. </p>
+
+</div>
+</div>
+<a id="a5e5bb5504e4d14d892412f3907680e6f" name="a5e5bb5504e4d14d892412f3907680e6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e5bb5504e4d14d892412f3907680e6f">&#9670;&#160;</a></span>m_releaseState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a> shuttle::async::FinalAwaiter::m_releaseState { nullptr }</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a45adaf564ba4f08f8a47ac8a3b40d7cf" name="a45adaf564ba4f08f8a47ac8a3b40d7cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45adaf564ba4f08f8a47ac8a3b40d7cf">&#9670;&#160;</a></span>m_retainState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a6665190c162f856be9e75d70ea92fb5e">StateOperation</a> shuttle::async::FinalAwaiter::m_retainState { nullptr }</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Type-erased операции управления ссылкой state. </p>
+
+</div>
+</div>
+<a id="a1bef77346d724b32d9163ad2bd3a4dae" name="a1bef77346d724b32d9163ad2bd3a4dae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1bef77346d724b32d9163ad2bd3a4dae">&#9670;&#160;</a></span>m_scope</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a>* shuttle::async::FinalAwaiter::m_scope { nullptr }</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Scope-владелец coroutine; его lifetime охватывает финализацию frame. </p>
+
+</div>
+</div>
+<a id="a304ba0aef7a08c10fcc8472d98589624" name="a304ba0aef7a08c10fcc8472d98589624"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a304ba0aef7a08c10fcc8472d98589624">&#9670;&#160;</a></span>m_state</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* shuttle::async::FinalAwaiter::m_state { nullptr }</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Не владеющий адрес состояния, удерживаемый retain/release callbacks. </p>
+
+</div>
+</div>
+<hr/>Объявления и описания членов классов находятся в файлах:<ul>
+<li>include/async/<a class="el" href="awaiters_8hpp_source.html">awaiters.hpp</a></li>
+<li>src/<a class="el" href="awaiters_8cpp.html">awaiters.cpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceshuttle.html">shuttle</a></li><li class="navelem"><a href="namespaceshuttle_1_1async.html">async</a></li><li class="navelem"><a href="classshuttle_1_1async_1_1_final_awaiter.html">FinalAwaiter</a></li>
+    <li class="footer">Создано системой <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>

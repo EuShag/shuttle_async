@@ -1,0 +1,890 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.14.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>shuttle_async: Структура shuttle::async::AsyncTask&lt; T &gt;::promise_type</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="clipboard.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">shuttle_async
+   </div>
+   <div id="projectbrief">Задачи на корутинах C++23 и исполнители</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.14.0 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+</script>
+<script type="text/javascript">
+$(function() { codefold.init(); });
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','Поиск',true);
+  $(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(function(){initNavTree('structshuttle_1_1async_1_1_async_task_1_1promise__type.html','','structshuttle_1_1async_1_1_async_task_1_1promise__type-members'); });
+</script>
+<div id="container">
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Загрузка...</div>
+<div class="SRStatus" id="Searching">Поиск...</div>
+<div class="SRStatus" id="NoMatches">Не найдено</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">Структура shuttle::async::AsyncTask&lt; T &gt;::promise_type</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p> 
+ <a href="#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="async__task_8hpp_source.html">async_task.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Граф наследования:shuttle::async::AsyncTask&lt; T &gt;::promise_type:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="structshuttle_1_1async_1_1_async_task_1_1promise__type.png" usemap="#shuttle_3A_3Aasync_3A_3AAsyncTask_3C_20T_20_3E_3A_3Apromise_5Ftype_map" alt=""/>
+  <map id="shuttle_3A_3Aasync_3A_3AAsyncTask_3C_20T_20_3E_3A_3Apromise_5Ftype_map" name="shuttle_3A_3Aasync_3A_3AAsyncTask_3C_20T_20_3E_3A_3Apromise_5Ftype_map">
+<area href="structshuttle_1_1async_1_1_async_task_return_ops.html" alt="shuttle::async::AsyncTaskReturnOps&lt; T, promise_type &gt;" shape="rect" coords="0,0,331,24"/>
+  </map>
+</div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Классы</h2></td></tr>
+<tr class="memitem:CancellationAwaiter" id="r_CancellationAwaiter"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html">CancellationAwaiter</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Проверяет cancellation flag без приостановки.  <a href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html#details">Подробнее...</a><br /></td></tr>
+<tr class="memitem:SwitchExecutorAwaiter" id="r_SwitchExecutorAwaiter"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_switch_executor_awaiter.html">SwitchExecutorAwaiter</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:a0cdcc1101ffac50b94195283aef22581" id="r_a0cdcc1101ffac50b94195283aef22581"><td class="memTemplParams" colspan="2">template&lt;typename TObj, typename... TArgs&gt; </td></tr>
+<tr class="memitem:a0cdcc1101ffac50b94195283aef22581 template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0cdcc1101ffac50b94195283aef22581">promise_type</a> (TObj &amp;&amp;, <a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> &amp;scope, TArgs &amp;...) noexcept</td></tr>
+<tr class="memdesc:a0cdcc1101ffac50b94195283aef22581"><td class="mdescLeft">&#160;</td><td class="mdescRight">Инициализирует state для coroutine с первым объектом-параметром и scope.  <br /></td></tr>
+<tr class="memitem:a137d92cdb88df1bbe083b9920ebb2479" id="r_a137d92cdb88df1bbe083b9920ebb2479"><td class="memTemplParams" colspan="2">template&lt;typename... TArgs&gt; </td></tr>
+<tr class="memitem:a137d92cdb88df1bbe083b9920ebb2479 template"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a137d92cdb88df1bbe083b9920ebb2479">promise_type</a> (<a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> &amp;scope, TArgs &amp;...) noexcept</td></tr>
+<tr class="memdesc:a137d92cdb88df1bbe083b9920ebb2479"><td class="mdescLeft">&#160;</td><td class="mdescRight">Инициализирует state для coroutine, начинающейся с <a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a>.  <br /></td></tr>
+<tr class="memitem:ad1899dc8978d81f66a7d03a4c7efbe18" id="r_ad1899dc8978d81f66a7d03a4c7efbe18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad1899dc8978d81f66a7d03a4c7efbe18">promise_type</a> () noexcept=default</td></tr>
+<tr class="memdesc:ad1899dc8978d81f66a7d03a4c7efbe18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Создаёт promise без scope, применяемый для coroutine без scope-параметра.  <br /></td></tr>
+<tr class="memitem:a726ac12668353b8d15dbaaa1df7ed706" id="r_a726ac12668353b8d15dbaaa1df7ed706"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a726ac12668353b8d15dbaaa1df7ed706">get_return_object</a> () noexcept</td></tr>
+<tr class="memdesc:a726ac12668353b8d15dbaaa1df7ed706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Создаёт <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a> из состояния и регистрирует coroutine handle в scope.  <br /></td></tr>
+<tr class="memitem:a2b010df2e60df4217507c29588eb7239" id="r_a2b010df2e60df4217507c29588eb7239"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2b010df2e60df4217507c29588eb7239">initial_suspend</a> () const noexcept</td></tr>
+<tr class="memdesc:a2b010df2e60df4217507c29588eb7239"><td class="mdescLeft">&#160;</td><td class="mdescRight">Выбирает начальный suspend на основании launch mode и результата аллокации.  <br /></td></tr>
+<tr class="memitem:abaa7858804835fed0c2f83257f1d2229" id="r_abaa7858804835fed0c2f83257f1d2229"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abaa7858804835fed0c2f83257f1d2229">final_suspend</a> () const noexcept</td></tr>
+<tr class="memdesc:abaa7858804835fed0c2f83257f1d2229"><td class="mdescLeft">&#160;</td><td class="mdescRight">Создаёт финализатор, который сначала публикует завершение, затем уничтожает frame.  <br /></td></tr>
+<tr class="memitem:a8b8dda6ef2ed1537dc762ea80610e554" id="r_a8b8dda6ef2ed1537dc762ea80610e554"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b8dda6ef2ed1537dc762ea80610e554">unhandled_exception</a> () const noexcept</td></tr>
+<tr class="memdesc:a8b8dda6ef2ed1537dc762ea80610e554"><td class="mdescLeft">&#160;</td><td class="mdescRight">Исключения из пользовательского тела корутины фатальны.  <br /></td></tr>
+<tr class="memitem:a25fd0e97b4b14ece93f767abd1e657ab" id="r_a25fd0e97b4b14ece93f767abd1e657ab"><td class="memTemplParams" colspan="2">template&lt;typename Awaitable&gt; <br />
+requires requires(Awaitable&amp; awaitable, std::atomic&lt;bool&gt;* flag) { awaitable.claimAwait(); awaitable.prepareAwaiter(flag); }</td></tr>
+<tr class="memitem:a25fd0e97b4b14ece93f767abd1e657ab template"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25fd0e97b4b14ece93f767abd1e657ab">await_transform</a> (Awaitable &amp;&amp;awaitable) noexcept</td></tr>
+<tr class="memdesc:a25fd0e97b4b14ece93f767abd1e657ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Добавляет cancellation flag к поддерживающему это awaitable.  <br /></td></tr>
+<tr class="memitem:a44dd1c719cb71e88c9bc5eb6246231d8" id="r_a44dd1c719cb71e88c9bc5eb6246231d8"><td class="memTemplParams" colspan="2">template&lt;typename U&gt; </td></tr>
+<tr class="memitem:a44dd1c719cb71e88c9bc5eb6246231d8 template"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a>&lt; U &gt;::FutureAwaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a44dd1c719cb71e88c9bc5eb6246231d8">await_transform</a> (<a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>&lt; U &gt; &amp;task) noexcept</td></tr>
+<tr class="memdesc:a44dd1c719cb71e88c9bc5eb6246231d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Настраивает вложенную задачу на pinned executor текущего потока.  <br /></td></tr>
+<tr class="memitem:a4b933f2977c2a5f7c3dd8e3ee4336638" id="r_a4b933f2977c2a5f7c3dd8e3ee4336638"><td class="memTemplParams" colspan="2">template&lt;typename U&gt; </td></tr>
+<tr class="memitem:a4b933f2977c2a5f7c3dd8e3ee4336638 template"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a>&lt; U &gt;::FutureAwaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b933f2977c2a5f7c3dd8e3ee4336638">await_transform</a> (<a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>&lt; U &gt; &amp;&amp;task) noexcept</td></tr>
+<tr class="memdesc:a4b933f2977c2a5f7c3dd8e3ee4336638"><td class="mdescLeft">&#160;</td><td class="mdescRight">Настраивает вложенную задачу на pinned executor текущего потока.  <br /></td></tr>
+<tr class="memitem:adce9f0649cf381a42f55c60240a38274" id="r_adce9f0649cf381a42f55c60240a38274"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html">CancellationAwaiter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adce9f0649cf381a42f55c60240a38274">await_transform</a> (<a class="el" href="structshuttle_1_1async_1_1_cancellation_point.html">CancellationPoint</a>) noexcept</td></tr>
+<tr class="memdesc:adce9f0649cf381a42f55c60240a38274"><td class="mdescLeft">&#160;</td><td class="mdescRight">Преобразует маркер cancellationPoint в <a class="el" href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html" title="Проверяет cancellation flag без приостановки.">CancellationAwaiter</a>.  <br /></td></tr>
+<tr class="memitem:a97d0384f45d6a914247d77d88b97afd1" id="r_a97d0384f45d6a914247d77d88b97afd1"><td class="memTemplParams" colspan="2">template&lt;typename Awaitable&gt; <br />
+requires (!std::same_as&lt;std::remove_cvref_t&lt;Awaitable&gt;, <a class="el" href="structshuttle_1_1async_1_1_cancellation_point.html">CancellationPoint</a>&gt;) &amp;&amp; (!requires(std::remove_cvref_t&lt;Awaitable&gt;&amp; awaitable, std::atomic&lt;bool&gt;* flag) { awaitable.claimAwait(); awaitable.prepareAwaiter(flag); })</td></tr>
+<tr class="memitem:a97d0384f45d6a914247d77d88b97afd1 template"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a97d0384f45d6a914247d77d88b97afd1">await_transform</a> (Awaitable &amp;&amp;awaitable) noexcept</td></tr>
+<tr class="memdesc:a97d0384f45d6a914247d77d88b97afd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Передаёт остальные неподдерживаемые awaitable без преобразования.  <br /></td></tr>
+<tr class="memitem:a74492fad8969bfd78da8fa8fff452051" id="r_a74492fad8969bfd78da8fa8fff452051"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a74492fad8969bfd78da8fa8fff452051">await_transform</a> (<a class="el" href="classshuttle_1_1async_1_1_i_executor.html">IExecutor</a> *explicitExecutor) noexcept</td></tr>
+<tr class="memdesc:a74492fad8969bfd78da8fa8fff452051"><td class="mdescLeft">&#160;</td><td class="mdescRight">Позволяет писать <span class="tt">co_await executor</span> для переключения исполнителя.  <br /></td></tr>
+<tr class="memitem:ab3c07863cc44bc3c4c9c8b83f4e4cd9b" id="r_ab3c07863cc44bc3c4c9c8b83f4e4cd9b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3c07863cc44bc3c4c9c8b83f4e4cd9b">initializeState</a> (bool started) noexcept</td></tr>
+<tr class="memdesc:ab3c07863cc44bc3c4c9c8b83f4e4cd9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Создаёт allocator-owned shared state; неуспех запоминается для return object.  <br /></td></tr>
+<tr class="memitem:ab501d65bab9a4eae29278fbe4c470c36" id="r_ab501d65bab9a4eae29278fbe4c470c36"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab501d65bab9a4eae29278fbe4c470c36">operator new</a> (std::size_t size) noexcept</td></tr>
+<tr class="memdesc:ab501d65bab9a4eae29278fbe4c470c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Выделяет coroutine frame через <a class="el" href="classshuttle_1_1async_1_1_mi_allocator.html">MiAllocator</a>.  <br /></td></tr>
+<tr class="memitem:a843d53ea8ee91c64a5119f9b4d8611da" id="r_a843d53ea8ee91c64a5119f9b4d8611da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a843d53ea8ee91c64a5119f9b4d8611da">operator delete</a> (void *ptr, std::size_t) noexcept</td></tr>
+<tr class="memdesc:a843d53ea8ee91c64a5119f9b4d8611da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Освобождает coroutine frame, выделенный operator new.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Открытые статические члены</h2></td></tr>
+<tr class="memitem:a3319efdbf3ea1118f7327f165cbde8e5" id="r_a3319efdbf3ea1118f7327f165cbde8e5"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3319efdbf3ea1118f7327f165cbde8e5">get_return_object_on_allocation_failure</a> () noexcept</td></tr>
+<tr class="memdesc:a3319efdbf3ea1118f7327f165cbde8e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coroutine-frame allocation failure становится ошибочной <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Открытые атрибуты</h2></td></tr>
+<tr class="memitem:a955f71f342542f82cfb2ff691f46fb2b" id="r_a955f71f342542f82cfb2ff691f46fb2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a955f71f342542f82cfb2ff691f46fb2b">m_coroScope</a> { nullptr }</td></tr>
+<tr class="memdesc:a955f71f342542f82cfb2ff691f46fb2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Не владеющий scope родителя; frame должен завершиться до scope.  <br /></td></tr>
+<tr class="memitem:aaf05993a5f5706caf749e93f244e337f" id="r_aaf05993a5f5706caf749e93f244e337f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_async_promise.html">AsyncPromise</a>&lt; T &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaf05993a5f5706caf749e93f244e337f">m_promise</a></td></tr>
+<tr class="memdesc:aaf05993a5f5706caf749e93f244e337f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Producer-ссылка на shared state.  <br /></td></tr>
+<tr class="memitem:a70162c424b4ade3bc6adcc4480dbb093" id="r_a70162c424b4ade3bc6adcc4480dbb093"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a>&lt; T &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a70162c424b4ade3bc6adcc4480dbb093">m_future</a></td></tr>
+<tr class="memdesc:a70162c424b4ade3bc6adcc4480dbb093"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consumer-ссылка, передаваемая наружу из coroutine.  <br /></td></tr>
+<tr class="memitem:acd66d6c7ce054a952f6b38ac12f9ae24" id="r_acd66d6c7ce054a952f6b38ac12f9ae24"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd66d6c7ce054a952f6b38ac12f9ae24">m_stateCreationFailed</a> { false }</td></tr>
+<tr class="memdesc:acd66d6c7ce054a952f6b38ac12f9ae24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Флаг отказа создания shared state.  <br /></td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Подробное описание</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename T = void&gt;<br />
+struct shuttle::async::AsyncTask&lt; T &gt;::promise_type</div><p>Coroutine promise, связывающий frame, scope и shared state.</p>
+<p>State выделяется отдельно с <a class="el" href="classshuttle_1_1async_1_1_mi_allocator.html">MiAllocator</a>. При неудаче аллокации get_return_object возвращает ошибочную <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>, а тело не исполняется.   </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Конструктор(ы)</h2>
+<a id="a0cdcc1101ffac50b94195283aef22581" name="a0cdcc1101ffac50b94195283aef22581"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cdcc1101ffac50b94195283aef22581">&#9670;&#160;</a></span>promise_type() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename TObj, typename... TArgs&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::promise_type </td>
+          <td>(</td>
+          <td class="paramtype">TObj &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TArgs &amp;</td>          <td class="paramname"><span class="paramname"><em>...</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Инициализирует state для coroutine с первым объектом-параметром и scope. </p>
+<dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TObj</td><td>Тип первого coroutine-параметра. </td></tr>
+    <tr><td class="paramname">TArgs</td><td>Типы оставшихся coroutine-параметров. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scope</td><td>Scope, хранящийся в frame.   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a137d92cdb88df1bbe083b9920ebb2479" name="a137d92cdb88df1bbe083b9920ebb2479"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a137d92cdb88df1bbe083b9920ebb2479">&#9670;&#160;</a></span>promise_type() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename... TArgs&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::promise_type </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TArgs &amp;</td>          <td class="paramname"><span class="paramname"><em>...</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Инициализирует state для coroutine, начинающейся с <a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a>. </p>
+<dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TArgs</td><td>Типы дополнительных coroutine-параметров. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scope</td><td>Scope, хранящийся в frame.   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad1899dc8978d81f66a7d03a4c7efbe18" name="ad1899dc8978d81f66a7d03a4c7efbe18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1899dc8978d81f66a7d03a4c7efbe18">&#9670;&#160;</a></span>promise_type() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::promise_type </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel default">default</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Создаёт promise без scope, применяемый для coroutine без scope-параметра. </p>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Методы</h2>
+<a id="a4b933f2977c2a5f7c3dd8e3ee4336638" name="a4b933f2977c2a5f7c3dd8e3ee4336638"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b933f2977c2a5f7c3dd8e3ee4336638">&#9670;&#160;</a></span>await_transform() <span class="overload">[1/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename U&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a>&lt; U &gt;::FutureAwaiter <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::await_transform </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>&lt; U &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>task</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Настраивает вложенную задачу на pinned executor текущего потока. </p>
+<dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">U</td><td>Тип результата вложенной задачи. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">task</td><td>Временная или перемещённая задача. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Awaiter, распространяющий cancellation flag этой задачи.   </dd></dl>
+
+</div>
+</div>
+<a id="a44dd1c719cb71e88c9bc5eb6246231d8" name="a44dd1c719cb71e88c9bc5eb6246231d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44dd1c719cb71e88c9bc5eb6246231d8">&#9670;&#160;</a></span>await_transform() <span class="overload">[2/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename U&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a>&lt; U &gt;::FutureAwaiter <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::await_transform </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>&lt; U &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>task</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Настраивает вложенную задачу на pinned executor текущего потока. </p>
+<dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">U</td><td>Тип результата вложенной задачи. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">task</td><td>Вложенная задача, потребляемая единственным consumer-ом. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Awaiter, распространяющий cancellation flag этой задачи.   </dd></dl>
+
+</div>
+</div>
+<a id="a25fd0e97b4b14ece93f767abd1e657ab" name="a25fd0e97b4b14ece93f767abd1e657ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25fd0e97b4b14ece93f767abd1e657ab">&#9670;&#160;</a></span>await_transform() <span class="overload">[3/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename Awaitable&gt; <br />
+requires requires(Awaitable&amp; awaitable, std::atomic&lt;bool&gt;* flag) { awaitable.claimAwait(); awaitable.prepareAwaiter(flag); }</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::await_transform </td>
+          <td>(</td>
+          <td class="paramtype">Awaitable &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>awaitable</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Добавляет cancellation flag к поддерживающему это awaitable. </p>
+<dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Awaitable</td><td>Тип одноразового awaitable с claimAwait/prepareAwaiter. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">awaitable</td><td>Awaitable, чьё потребление передаётся promise. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Подготовленный awaiter. Повторное потребление awaitable является фатальной ошибкой.   </dd></dl>
+
+</div>
+</div>
+<a id="a97d0384f45d6a914247d77d88b97afd1" name="a97d0384f45d6a914247d77d88b97afd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97d0384f45d6a914247d77d88b97afd1">&#9670;&#160;</a></span>await_transform() <span class="overload">[4/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename Awaitable&gt; <br />
+requires (!std::same_as&lt;std::remove_cvref_t&lt;Awaitable&gt;, <a class="el" href="structshuttle_1_1async_1_1_cancellation_point.html">CancellationPoint</a>&gt;) &amp;&amp; (!requires(std::remove_cvref_t&lt;Awaitable&gt;&amp; awaitable, std::atomic&lt;bool&gt;* flag) { awaitable.claimAwait(); awaitable.prepareAwaiter(flag); })</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">decltype(auto) <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::await_transform </td>
+          <td>(</td>
+          <td class="paramtype">Awaitable &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>awaitable</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Передаёт остальные неподдерживаемые awaitable без преобразования. </p>
+<dl class="tparams"><dt>Параметры шаблона</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Awaitable</td><td>Тип произвольного awaitable. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">awaitable</td><td>Объект, передаваемый с сохранением категории значения. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Исходный объект или ссылка на него.   </dd></dl>
+
+</div>
+</div>
+<a id="adce9f0649cf381a42f55c60240a38274" name="adce9f0649cf381a42f55c60240a38274"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adce9f0649cf381a42f55c60240a38274">&#9670;&#160;</a></span>await_transform() <span class="overload">[5/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html">CancellationAwaiter</a> <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::await_transform </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structshuttle_1_1async_1_1_cancellation_point.html">CancellationPoint</a></td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Преобразует маркер cancellationPoint в <a class="el" href="structshuttle_1_1async_1_1_async_task_1_1promise__type_1_1_cancellation_awaiter.html" title="Проверяет cancellation flag без приостановки.">CancellationAwaiter</a>. </p>
+
+</div>
+</div>
+<a id="a74492fad8969bfd78da8fa8fff452051" name="a74492fad8969bfd78da8fa8fff452051"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74492fad8969bfd78da8fa8fff452051">&#9670;&#160;</a></span>await_transform() <span class="overload">[6/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::await_transform </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classshuttle_1_1async_1_1_i_executor.html">IExecutor</a> *</td>          <td class="paramname"><span class="paramname"><em>explicitExecutor</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Позволяет писать <span class="tt">co_await executor</span> для переключения исполнителя. </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">explicitExecutor</td><td>Не владеющий целевой executor либо nullptr. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Awaiter переключения; nullptr означает немедленное продолжение.   </dd></dl>
+
+</div>
+</div>
+<a id="abaa7858804835fed0c2f83257f1d2229" name="abaa7858804835fed0c2f83257f1d2229"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abaa7858804835fed0c2f83257f1d2229">&#9670;&#160;</a></span>final_suspend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::final_suspend </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Создаёт финализатор, который сначала публикует завершение, затем уничтожает frame. </p>
+
+</div>
+</div>
+<a id="a726ac12668353b8d15dbaaa1df7ed706" name="a726ac12668353b8d15dbaaa1df7ed706"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a726ac12668353b8d15dbaaa1df7ed706">&#9670;&#160;</a></span>get_return_object()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a> <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::get_return_object </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Создаёт <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a> из состояния и регистрирует coroutine handle в scope. </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Ошибка allocation_failure, если state не удалось выделить.   </dd></dl>
+
+</div>
+</div>
+<a id="a3319efdbf3ea1118f7327f165cbde8e5" name="a3319efdbf3ea1118f7327f165cbde8e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3319efdbf3ea1118f7327f165cbde8e5">&#9670;&#160;</a></span>get_return_object_on_allocation_failure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a> <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::get_return_object_on_allocation_failure </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Coroutine-frame allocation failure становится ошибочной <a class="el" href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a>. </p>
+
+</div>
+</div>
+<a id="a2b010df2e60df4217507c29588eb7239" name="a2b010df2e60df4217507c29588eb7239"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b010df2e60df4217507c29588eb7239">&#9670;&#160;</a></span>initial_suspend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::initial_suspend </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Выбирает начальный suspend на основании launch mode и результата аллокации. </p>
+
+</div>
+</div>
+<a id="ab3c07863cc44bc3c4c9c8b83f4e4cd9b" name="ab3c07863cc44bc3c4c9c8b83f4e4cd9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3c07863cc44bc3c4c9c8b83f4e4cd9b">&#9670;&#160;</a></span>initializeState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::initializeState </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>started</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Создаёт allocator-owned shared state; неуспех запоминается для return object. </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">started</td><td>Начальное состояние флага запуска.   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a843d53ea8ee91c64a5119f9b4d8611da" name="a843d53ea8ee91c64a5119f9b4d8611da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a843d53ea8ee91c64a5119f9b4d8611da">&#9670;&#160;</a></span>operator delete()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::operator delete </td>
+          <td>(</td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>ptr</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Освобождает coroutine frame, выделенный operator new. </p>
+
+</div>
+</div>
+<a id="ab501d65bab9a4eae29278fbe4c470c36" name="ab501d65bab9a4eae29278fbe4c470c36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab501d65bab9a4eae29278fbe4c470c36">&#9670;&#160;</a></span>operator new()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::operator new </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>size</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Выделяет coroutine frame через <a class="el" href="classshuttle_1_1async_1_1_mi_allocator.html">MiAllocator</a>. </p>
+
+</div>
+</div>
+<a id="a8b8dda6ef2ed1537dc762ea80610e554" name="a8b8dda6ef2ed1537dc762ea80610e554"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b8dda6ef2ed1537dc762ea80610e554">&#9670;&#160;</a></span>unhandled_exception()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::unhandled_exception </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Исключения из пользовательского тела корутины фатальны. </p>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Данные класса</h2>
+<a id="a955f71f342542f82cfb2ff691f46fb2b" name="a955f71f342542f82cfb2ff691f46fb2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a955f71f342542f82cfb2ff691f46fb2b">&#9670;&#160;</a></span>m_coroScope</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_coro_scope.html">CoroScope</a>* <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::m_coroScope { nullptr }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Не владеющий scope родителя; frame должен завершиться до scope. </p>
+
+</div>
+</div>
+<a id="a70162c424b4ade3bc6adcc4480dbb093" name="a70162c424b4ade3bc6adcc4480dbb093"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70162c424b4ade3bc6adcc4480dbb093">&#9670;&#160;</a></span>m_future</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_future.html">AsyncFuture</a>&lt;T&gt; <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::m_future</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Consumer-ссылка, передаваемая наружу из coroutine. </p>
+
+</div>
+</div>
+<a id="aaf05993a5f5706caf749e93f244e337f" name="aaf05993a5f5706caf749e93f244e337f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf05993a5f5706caf749e93f244e337f">&#9670;&#160;</a></span>m_promise</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classshuttle_1_1async_1_1_async_promise.html">AsyncPromise</a>&lt;T&gt; <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::m_promise</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Producer-ссылка на shared state. </p>
+
+</div>
+</div>
+<a id="acd66d6c7ce054a952f6b38ac12f9ae24" name="acd66d6c7ce054a952f6b38ac12f9ae24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd66d6c7ce054a952f6b38ac12f9ae24">&#9670;&#160;</a></span>m_stateCreationFailed</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T = void&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classshuttle_1_1async_1_1_async_task.html">shuttle::async::AsyncTask</a>&lt; T &gt;::promise_type::m_stateCreationFailed { false }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Флаг отказа создания shared state. </p>
+
+</div>
+</div>
+<hr/>Объявления и описания членов структуры находятся в файле:<ul>
+<li>include/async/<a class="el" href="async__task_8hpp_source.html">async_task.hpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
+</div><!-- container -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a href="namespaceshuttle.html">shuttle</a></li><li class="navelem"><a href="namespaceshuttle_1_1async.html">async</a></li><li class="navelem"><a href="classshuttle_1_1async_1_1_async_task.html">AsyncTask</a></li><li class="navelem"><a href="structshuttle_1_1async_1_1_async_task_1_1promise__type.html">promise_type</a></li>
+    <li class="footer">Создано системой <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
+  </ul>
+</div>
+</body>
+</html>
