@@ -24,10 +24,7 @@ namespace shuttle::async {
         }
     }
 
-    // =================================================================
-    // 2. ДИНАМИЧЕСКАЯ ФАБРИКА (Вся "грязная" работа по сборке и запуску)
-    // =================================================================
-    [[nodiscard]] Result<MiUniquePtr<ThreadPoolExecutor>> ThreadPoolExecutor::create(
+        [[nodiscard]] Result<MiUniquePtr<ThreadPoolExecutor>> ThreadPoolExecutor::create(
         size_t numWorkers,
         WorkerCrashCallback&& crushCallback) noexcept
     {
@@ -35,12 +32,12 @@ namespace shuttle::async {
             return std::unexpected(Error::invalid_worker_count);
         }
 
-        // 1. Объявляем транзитные контейнеры на стеке фабрики
+        // 1. Declare transient containers on the factory stack frame.
         std::optional<moodycamel::ConcurrentQueue<std::coroutine_handle<>>> localQueueOpt;
         std::optional<std::vector<WorkerContext, MiAllocator<WorkerContext>>> localContextsOpt;
         std::vector<std::jthread, MiAllocator<std::jthread>> localThreads;
 
-        // 2. БРОНИРОВАННЫЙ БЛОК БЕЗОПАСНОСТИ
+        // 2. EXCEPTION SAFETY BLOCK
         try {
             localQueueOpt.emplace();
             localThreads.reserve(numWorkers);
@@ -53,13 +50,13 @@ namespace shuttle::async {
         auto& localContexts = *localContextsOpt;
         auto& localQueue = *localQueueOpt;
 
-        // Настраиваем ID и сбрасываем атомики ошибок в уже выделенной монолитной памяти
+        // Configure IDs and reset error atomics within the pre-allocated monolithic memory block.
         for (size_t i = 0; i < numWorkers; ++i) {
             localContexts[i].m_id = i;
         }
 
-        // 3. Собираем объект-оболочку экзекьютора.
-        // Контейнеры безвозвратно улетают внутрь полей смарт-поинтера.
+        // 3. Assemble the executor wrapper object.
+        // Ownership of the containers is permanently moved into the smart pointer fields.
         auto executor = mi_make_unique_nothrow<ThreadPoolExecutor>(
             numWorkers,
             std::move(localThreads),
@@ -72,18 +69,19 @@ namespace shuttle::async {
             return std::unexpected(Error::allocation_failure);
         }
 
-        // 4. ОЖИВЛЕНИЕ ПУЛА (Вся грязная работа)
-        // Теперь, когда executor полностью собран и выделился в куче через mi_make_unique_nothrow,
-        // его адрес в памяти ЖЕЛЕЗОБЕТОННО СТАБИЛЕН. Указатель executor.get() больше никогда не изменится!
-        // Мы можем безопасно вызывать init(), зная, что потоки Windows получат вечный, валидный адрес 'this'.
+        // 4. POOL INITIALIZATION (The critical startup phase)
+        // Now that the executor is fully assembled and allocated in the heap via mi_make_unique_nothrow,
+        // its memory address is GUARANTEED TO BE STABLE. The pointer returned by executor.get() will never change!
+        // We can safely invoke init(), ensuring that the OS threads receive a permanent, valid 'this' address.
         auto initResult = executor->init();
         if (!initResult) [[unlikely]] {
             return std::unexpected(initResult.error());
         }
 
-        // 5. УСПЕХ: Возвращаем живой, запущенный, пуленепробиваемый пул потоков!
+        // 5. SUCCESS: Return a live, running, robust thread pool instance!
         return std::move(executor);
     }
+
 
     ThreadPoolExecutor::~ThreadPoolExecutor() {
         m_stopping.store(true, std::memory_order_release);
@@ -91,33 +89,33 @@ namespace shuttle::async {
         m_threads.clear();
     }
 
-    Status ThreadPoolExecutor::execute(
+        Status ThreadPoolExecutor::execute(
         std::coroutine_handle<> coro) {
-        // 1. СТРОГИЙ БАРЬЕР НА ВХОДЕ
+        // 1. STRICT INPUT BARRIER
         if (!coro) [[unlikely]] {
             return std::unexpected(Error::invalid_coroutine_handle);
         }
 
-        // Жесткая кирпичная стена при Shutdown пула: новые задачи больше не принимаются,
-        // этот код "отпружинит" в Yield или launch, давая корутинам штатно закрыть RAII ресурсы.
+        // A hard barrier during pool Shutdown: no new tasks are accepted.
+        // This causes the call to bounce back to the Yield or launch context, allowing coroutines to cleanly release RAII resources.
         if (m_stopping.load(std::memory_order_acquire)) [[unlikely]] {
             return std::unexpected(Error::executor_stopped);
         }
 
-        // 2. ОПРЕДЕЛЯЕМ КОНТЕКСТ ВЫЗОВА
-        // Извлекаем TLS-указатель текущего физического потока Windows
+        // 2. DETERMINE THE CALL CONTEXT
+        // Extract the TLS pointer of the current physical OS thread
         WorkerContext* currentCtx = m_currentWorker;
 
         if (currentCtx != nullptr) {
             // =================================================================
-            // FAST-PATH (Вызов внутри пула): Корутина порождает корутину.
+            // FAST-PATH (Internal Pool Call): A coroutine spawns a coroutine.
             // =================================================================
-            // Толкаем задачу НАПРЯМУЮ в локальную деку Chase-Lev без единой блокировки
+            // Push the task DIRECTLY into the local Chase-Lev deque without any locking overhead
             if (!currentCtx->m_queue.try_push(coro)) [[unlikely]] {
 
-                // ЛОКАЛЬНЫЙ КАРМАН ПЕРЕПОЛНЕН (>1024 задач):
-                // Мы не падаем, а аварийно сгружаем излишек во входящую глобальную воронку.
-                // Используем наш макрос VOID-группы, который вернет ошибку, если у Windows кончилась память!
+                // LOCAL BUFFER OVERFLOW (>1024 tasks):
+                // Instead of crashing, we gracefully offload the excess tasks into the global incoming queue.
+                // Use our void-group macro, which returns an error if the system runs out of memory!
                 ASYNC_TRY_VOID(enqueueIncoming(coro));
                 return {};
             }
@@ -126,9 +124,9 @@ namespace shuttle::async {
         }
         else {
             // =================================================================
-            // SLOW-PATH (Внешний поток): Вызов из main(), сетевого IO или ОС-колбэка.
+            // SLOW-PATH (External Thread Call): Invoked from main(), network I/O, or OS callback.
             // =================================================================
-            // Спокойно и надежно сгружаем корневую задачу в глобальный lock-free буфер
+            // Safely and reliably enqueue the root task into the global lock-free buffer
             ASYNC_TRY_VOID(enqueueIncoming(coro));
         }
 
@@ -136,23 +134,24 @@ namespace shuttle::async {
     }
 
     // =================================================================
-    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД КЛАССА ДЛЯ РАБОТЫ С ГЛОБАЛЬНЫМ СКЛАДОМ
+    // HELPER METHOD FOR INTERACTIONS WITH THE GLOBAL TASK STORAGE
     // =================================================================
     Status ThreadPoolExecutor::enqueueIncoming(std::coroutine_handle<> handle) noexcept {
         m_incomingCount.fetch_add(1, std::memory_order_release);
 
-        // moodycamel затребует новые страницы памяти у ОС Windows, если старые забиты.
-        // Если в операционной системе тотально закончилась память — метод вернет false.
+        // moodycamel will request new memory pages from the OS if the existing ones are full.
+        // If the operating system is completely out of memory, the method will return false.
         if (!m_incomingQueue.enqueue(handle)) [[unlikely]] {
             m_incomingCount.fetch_sub(1, std::memory_order_relaxed);
-            // Единственная законная техническая internalError воркера/пула:
+            // The only legitimate technical internal error of the worker/pool:
             return std::unexpected(Error::queue_enqueue_failed);
         }
 
-        // Будим одного воркера пула, чтобы он выгреб задачу из глобального склада
+        // Wake up a single pool worker to process the task from the global storage
         notifyWorkAvailable();
         return {};
     }
+
 
     void ThreadPoolExecutor::notifyWorkAvailable() noexcept {
         if (m_sleepingWorkerCount.load(std::memory_order_acquire) != 0) {
@@ -167,15 +166,15 @@ namespace shuttle::async {
 
         for (size_t i = 0; i < m_numWorkers; ++i) {
             try {
-                // Запускаем jthread. Передаем метод-петлю, адрес пула и индекс воркера
+                // Launch jthread. Pass the loop method, the pool address, and the worker index.
                 m_threads.emplace_back(&ThreadPoolExecutor::workerLoop, this, i);
             }
             catch (const std::system_error&) {
-                // 🚨 КРИТИЧЕСКИЙ СБОЙ ОС: Закончились лимиты дескрипторов Windows!
+                // 🚨 CRITICAL OS FAILURE: Process descriptor or thread limits exceeded!
                 m_stopping.store(true, std::memory_order_release);
-                m_notifier.notify_all(); // Будим успевших уснуть
+                m_notifier.notify_all(); // Wake up any workers that managed to fall asleep.
 
-                // Деструкторы jthread сами сделают join() для всех успешно запущенных потоков.
+                // The jthread destructors will automatically join() all successfully launched threads.
                 m_threads.clear();
 
                 return std::unexpected(Error::worker_start_failed);

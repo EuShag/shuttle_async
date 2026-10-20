@@ -3,7 +3,7 @@ name: Deploy Doxygen Documentation
 on:
   push:
     branches:
-      - main  # Если ветка master, замени main на master
+      - main  # If your mainline branch is named 'master', change 'main' to 'master'
 
 permissions:
   contents: read
@@ -23,56 +23,38 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive  # Automatically fetches vendored dependencies (mimalloc, concurrentqueue)
 
-      # Устанавливаем Doxygen и Graphviz
-      - name: Install Doxygen
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
+          sudo apt-get install -y doxygen graphviz plantuml
 
-      # Собираем оба языка
-      - name: Run Doxygen (EN & RU)
+      - name: Configure CMake
         run: |
-          doxygen Doxyfile
-          doxygen Doxyfile.ru
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DASYNC_BUILD_TESTS=OFF \
+            -DASYNC_BUILD_EXAMPLES=OFF
 
-      # Создаем красивую главную страницу для выбора языка
-      - name: Create Index Page
-        run: |
-          mkdir -p docs/api
-          touch docs/api/.nojekyll
-          cat << 'EOF' > docs/api/index.html
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <meta charset="UTF-8">
-              <title>shuttle_async Documentation</title>
-              <style>
-                  body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #1e1e1e; color: #fff; }
-                  a { color: #58a6ff; text-decoration: none; font-size: 24px; margin: 20px; display: inline-block; padding: 10px 20px; border: 1px solid #58a6ff; border-radius: 5px; }
-                  a:hover { background: #58a6ff; color: #1e1e1e; }
-              </style>
-          </head>
-          <body>
-              <h1>shuttle_async API Documentation</h1>
-              <p>Choose your language / Выберите язык:</p>
-              <a href="en/html/index.html">English</a>
-              <a href="ru/html/index.html">Русский</a>
-          </body>
-          </html>
-          EOF
+      - name: Render PlantUML Diagrams
+        run: cmake --build build --target uml_png
 
-      # Настраиваем артефакты для GitHub Pages
-      - name: Setup Pages
+      - name: Run Doxygen Generation
+        run: doxygen Doxyfile
+
+      - name: Disable Jekyll Integration
+        run: touch docs/api/html/.nojekyll
+
+      - name: Setup GitHub Pages Environment
         uses: actions/configure-pages@v5
 
-      # Загружаем собранную папку docs/api
-      - name: Upload Artifact
+      - name: Upload Build Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs/api'
+          path: 'docs/api/html'  # Directly uploads the folder where Doxygen created index.html
 
-      # Публикуем сайт в сеть
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

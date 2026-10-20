@@ -18,22 +18,21 @@ namespace shuttle::async {
     }
 
     void* MiAllocatorBase::allocate_bytes(std::size_t bytes, std::size_t alignment) noexcept {
-        // Используем mi_malloc_aligned, чтобы гарантировать, что тяжелые графические
-        // структуры (например, матрицы трансформаций) лягут строго по границам кэш-линий CPU
+        // Use mi_malloc_aligned to ensure that heavy graphics structures
+        // (e.g., transformation matrices) align strictly with CPU cache line boundaries.
         void* ptr = mi_malloc_aligned(bytes, alignment);
         if (ptr != nullptr && m_allocationStats != nullptr) {
             ++m_allocationStats->allocations;
             m_allocationStats->bytes += bytes;
         }
 
-        // Так как исключения отключены, при нехватке памяти (OOM)
-        // мы детерминированно возвращаем nullptr вместо throw std::bad_alloc
+        // Since exceptions are disabled, we deterministically return nullptr
+        // instead of throwing std::bad_alloc in the event of an Out-Of-Memory (OOM) situation.
         return ptr;
     }
 
     void MiAllocatorBase::deallocate_bytes(void* ptr) noexcept {
-        // mimalloc сам атомарно определит, какому потоку и странице принадлежит этот адрес
+        // mimalloc will atomically determine which thread and memory page this address belongs to.
         mi_free(ptr);
     }
-
 } // namespace shuttle::async

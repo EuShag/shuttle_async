@@ -1,8 +1,0 @@
-var searchData=
-[
-  ['threadcontextguard_0',['ThreadContextGuard',['../classshuttle_1_1async_1_1_i_executor_1_1_thread_context_guard.html#a78902f67ec068b08f55716610c0077b4',1,'shuttle::async::IExecutor::ThreadContextGuard::ThreadContextGuard(ThreadContext context) noexcept'],['../classshuttle_1_1async_1_1_i_executor_1_1_thread_context_guard.html#abfaabd0869de7ce2c9a612c8e0516984',1,'shuttle::async::IExecutor::ThreadContextGuard::ThreadContextGuard(const ThreadContextGuard &amp;)=delete']]],
-  ['threadpoolexecutor_1',['ThreadPoolExecutor',['../classshuttle_1_1async_1_1_thread_pool_executor.html#a3d2af1f0b32f55889ceb75ac7dff028e',1,'shuttle::async::ThreadPoolExecutor::ThreadPoolExecutor()=default'],['../classshuttle_1_1async_1_1_thread_pool_executor.html#a330af00c571916e046f2e980694c210c',1,'shuttle::async::ThreadPoolExecutor::ThreadPoolExecutor(size_t numWorkers, std::vector&lt; std::jthread, MiAllocator&lt; std::jthread &gt; &gt; &amp;&amp;threads, std::vector&lt; WorkerContext, MiAllocator&lt; WorkerContext &gt; &gt; &amp;&amp;workers, moodycamel::ConcurrentQueue&lt; std::coroutine_handle&lt;&gt; &gt; &amp;&amp;incomingQueue, WorkerCrashCallback &amp;&amp;callback) noexcept']]],
-  ['to_5fstring_2',['to_string',['../namespaceshuttle_1_1async.html#a87caaf0c0ec7e20257a11f9a1cfebc63',1,'shuttle::async']]],
-  ['try_5fpush_3',['try_push',['../classshuttle_1_1async_1_1_coroutine_work_stealing_queue.html#af0efd0a78c16d5d1a11ab482f2845dd9',1,'shuttle::async::CoroutineWorkStealingQueue']]],
-  ['tryregisterwaiter_4',['tryRegisterWaiter',['../classshuttle_1_1async_1_1_async_shared_state.html#a4220f30640d9a912fcd6d0bd33d8b27f',1,'shuttle::async::AsyncSharedState']]]
-];

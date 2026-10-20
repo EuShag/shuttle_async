@@ -1,7 +1,7 @@
 PROJECT_NAME           = shuttle_async
 PROJECT_BRIEF          = "C++23 coroutine tasks and executors"
-OUTPUT_DIRECTORY       = docs/api/en
-INPUT                  = README.en.md uml/en/README.md uml/en include src
+OUTPUT_DIRECTORY       = docs/api/
+INPUT                  = README.md uml/README.md uml/ include src
 INPUT_ENCODING         = UTF-8
 RECURSIVE              = YES
 FILE_PATTERNS          = *.hpp *.cpp *.md

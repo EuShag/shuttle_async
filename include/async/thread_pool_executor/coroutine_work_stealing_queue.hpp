@@ -7,16 +7,6 @@
 
 namespace shuttle::async {
     /**
-     * @if RU
-     * @brief Ограниченная Chase–Lev deque для coroutine handles.
-     *
-     * Единственный владелец deque вызывает try_push/pop; другие потоки могут
-     * конкурентно вызывать steal. Очередь не владеет coroutine frame, а лишь
-     * передаёт handle. Емкость фиксирована, при заполнении push возвращает false.
-     *
-     * @tparam LogSize Двоичный логарифм ёмкости; должен быть в диапазоне [1, 30).
-     * @endif
-     * @if EN
      * @brief Bounded Chase–Lev deque for coroutine handles.
      *
      * Only the deque owner calls try_push/pop; other threads may concurrently
@@ -24,7 +14,6 @@ namespace shuttle::async {
      * handles. Capacity is fixed, and push returns false when the queue is full.
      *
      * @tparam LogSize Base-2 logarithm of the capacity; must be in [1, 30).
-     * @endif
      */
     template <size_t LogSize = 12>
     class CoroutineWorkStealingQueue {
@@ -41,51 +30,24 @@ namespace shuttle::async {
         alignas(64) std::atomic<std::coroutine_handle<>> m_buffer[BufferSize];
 
     public:
-        /// @if RU
-        /// Создаёт пустую deque фиксированной ёмкости.
-        /// @endif
-        /// @if EN
         /// Creates an empty deque with fixed capacity.
-        /// @endif
         CoroutineWorkStealingQueue() = default;
-        /// @if RU
-        /// Копирование очереди запрещено из-за её атомарного состояния.
-        /// @endif
-        /// @if EN
         /// Copying the queue is disabled because of its atomic state.
-        /// @endif
         CoroutineWorkStealingQueue(const CoroutineWorkStealingQueue&) = delete;
         CoroutineWorkStealingQueue& operator=(const CoroutineWorkStealingQueue&) = delete;
-        /// @if RU
-        /// Перемещает внутреннее состояние; перемещать активную очередь небезопасно.
-        /// @endif
-        /// @if EN
         /// Moves the internal state; moving an active queue is unsafe.
-        /// @endif
         CoroutineWorkStealingQueue(CoroutineWorkStealingQueue&&) = default;
         CoroutineWorkStealingQueue& operator = (CoroutineWorkStealingQueue&&) = default;
 
-        /// @if RU
-        /// @return Постоянная ёмкость очереди в элементах.
-        /// @endif
-        /// @if EN
         /// @return The queue's fixed capacity, in elements.
-        /// @endif
         static constexpr size_t capacity() noexcept {
             return BufferSize;
         }
 
         /**
-         * @if RU
-         * @brief Приблизительно оценивает число доступных элементов.
-         * @return Неотрицательная разность bottom и top на момент чтения.
-         * @note При конкурентных изменениях это моментальный приблизительный снимок.
-         * @endif
-         * @if EN
          * @brief Approximate estimate of the number of available elements.
          * @return Non-negative difference between bottom and top at the time of reading.
          * @note Concurrent modifications may make this an instantaneous, approximate snapshot.
-         * @endif
          */
         [[nodiscard]] size_t size() const noexcept {
             // Используем acquire для чтения top, чтобы гарантировать корректный размер из других потоков
@@ -94,27 +56,15 @@ namespace shuttle::async {
             return static_cast<size_t>(bottom >= top ? bottom - top : 0);
         }
 
-        /// @if RU
-        /// @return true, если моментальный снимок размера равен нулю.
-        /// @endif
-        /// @if EN
         /// @return true if the instantaneous size snapshot is zero.
-        /// @endif
         [[nodiscard]] bool empty() const noexcept {
             return size() == 0;
         }
 
         /**
-         * @if RU
-         * @brief Добавляет handle с конца очереди (только владелец).
-         * @param handle Handle корутины; владение frame не передаётся.
-         * @return false, если очередь заполнена; иначе true.
-         * @endif
-         * @if EN
          * @brief Adds a handle at the back of the queue (owner only).
          * @param handle Coroutine handle; ownership of the frame is not transferred.
          * @return false if the queue is full; otherwise, true.
-         * @endif
          */
         bool try_push(std::coroutine_handle<> handle) noexcept {
             const int64_t bottom = _bottom.load(std::memory_order_relaxed);
@@ -134,16 +84,9 @@ namespace shuttle::async {
         }
 
         /**
-         * @if RU
-         * @brief Извлекает самый новый handle с конца очереди (только владелец).
-         * @return Handle задачи либо пустой handle, если очередь пуста/элемент
-         *         уже забрал вор.
-         * @endif
-         * @if EN
          * @brief Removes the newest handle from the back of the queue (owner only).
          * @return Task handle, or an empty handle if the queue is empty or a thief
          *         has already taken the item.
-         * @endif
          */
         std::coroutine_handle<> pop() noexcept {
             int64_t bottom = _bottom.load(std::memory_order_relaxed) - 1;
@@ -175,16 +118,9 @@ namespace shuttle::async {
         }
 
         /**
-         * @if RU
-         * @brief Пытается забрать самый старый handle с начала очереди.
-         * @return Handle задачи либо пустой handle при пустой очереди или гонке.
-         * @note Thread safety: может вызываться несколькими конкурирующими ворами.
-         * @endif
-         * @if EN
          * @brief Attempts to take the oldest handle from the front of the queue.
          * @return Task handle, or an empty handle if the queue is empty or a race occurs.
          * @note Thread safety: may be called by multiple competing thieves.
-         * @endif
          */
         std::coroutine_handle<> steal() noexcept {
             // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Барьер seq_cst ДОЛЖЕН стоять перед чтением _top вором,

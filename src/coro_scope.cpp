@@ -5,13 +5,14 @@
 namespace shuttle::async {
     std::coroutine_handle<> JointerTask::Initial::await_suspend(std::coroutine_handle<> coroHandle) const noexcept {
         if (m_scopePtr) {
-            // 1. СНАЧАЛА регистрируем хэндл джоинтера в скоупе, чтобы дети знали, кого будить!
+            // 1. FIRST, register the jointer handle within the scope so that child frames know whom to wake up!
             m_scopePtr->registerJointerTaskHandle(coroHandle, IExecutor::getThreadPinnedExecutor());
-            // 2. ТОЛЬКО ПОСЛЕ ЭТОГО взводим атомарный барьер DEATH_SIGNAL
+            // 2. ONLY AFTER THAT, raise the atomic DEATH_SIGNAL barrier.
             if (auto handle = m_scopePtr->checkCanDestroyed(coroHandle); handle) return handle;
         }
         return IExecutor::getCurrentDispatcherCoroutine();
     }
+
 
     CoroScope CoroScope::createChild(LaunchOptions options) noexcept {
         return CoroScope{ options, this };
@@ -20,10 +21,10 @@ namespace shuttle::async {
     bool CoroScope::canImmediateLaunched() const noexcept { return m_launch_options.mode == LaunchMode::Immediate; }
 
     std::coroutine_handle<> CoroScope::getTransferCoro(std::coroutine_handle<> coroutineHandle) const noexcept {
-        // 1. Извлекаем родителя ЗАРАНЕЕ, пока фрейм корутины гарантированно цел
+        // 1. Extract the launch mode IN ADVANCE, while the coroutine frame is guaranteed to be intact.
         auto launchMode = m_launch_options.mode;
         coroutineHandle.destroy();
-        // 3. Возвращаем родителя (или уходим в диспетчер, если это корень)
+        // 3. Return the parent execution context (or pass control to the dispatcher if this is the root).
         if (launchMode == LaunchMode::Immediate) return std::noop_coroutine();
         return IExecutor::getCurrentDispatcherCoroutine();
     }
@@ -31,9 +32,9 @@ namespace shuttle::async {
     std::coroutine_handle<> CoroScope::checkCanDestroyed(std::coroutine_handle<> coroHandle) noexcept {
         if (uint64_t const prevChildren = m_childCount.fetch_or(DEATH_SIGNAL, std::memory_order_acq_rel);
             (prevChildren & ~DEATH_SIGNAL) == 0) {
-            // 2. Мы последние, атомарный барьер пройден. Уничтожаем фрейм кучи.
+            // 2. We are the last ones; the atomic barrier has been successfully passed. Destroy the heap frame.
             return coroHandle;
-        }
+            }
         return nullptr;
     }
 
