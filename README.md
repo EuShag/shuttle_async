@@ -17,7 +17,7 @@ See the language-specific guides for build instructions, usage, testing, archite
 
 API reference:
 
-- English: `doxygen Doxyfile` → `docs/api/en/html/index.html`
-- Русский: `doxygen Doxyfile.ru` → `docs/api/ru/html/index.html`
+- English: [`docs/api/en/html/index.html`]
+- Русский: [`docs/api/ru/html/index.html`]
 
 PlantUML sources are in [`uml/`](uml/README.md). The original MIT license is in [`LICENSE`](LICENSE).
