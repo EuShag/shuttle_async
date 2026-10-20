@@ -12,9 +12,6 @@ namespace shuttle::async {
 
     // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
     std::coroutine_handle<> InitialAwaiter::await_suspend(std::coroutine_handle<>) const noexcept {
-        if (m_allocationFailed) {
-            return std::noop_coroutine();
-        }
         return std::noop_coroutine();
     }
 
