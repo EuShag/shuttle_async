@@ -154,11 +154,7 @@ namespace shuttle::async {
             /// Creates a finalizer that publishes completion before destroying the frame.
             [[nodiscard]] auto final_suspend() const noexcept {
                 return FinalAwaiter{
-                    m_coroScope,
-                    m_promise.stateAddress(),
-                    &AsyncPromise<T>::retainState,
-                    &AsyncPromise<T>::releaseState,
-                    &AsyncPromise<T>::completeState
+                    m_coroScope
                 };
             }
 

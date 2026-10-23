@@ -17,34 +17,12 @@ namespace shuttle::async {
 
     std::coroutine_handle<> FinalAwaiter::await_suspend(std::coroutine_handle<> handle) const noexcept {
         CoroScope* const scope = m_scope;
-        void* const state = m_state;
-        StateOperation const retainState = m_retainState;
-        StateOperation const releaseState = m_releaseState;
-        StateCompletion const completeState = m_completeState;
 
-        if (state != nullptr) {
-            retainState(state);
-        }
-
-        const bool resumedWaiter =
-            state != nullptr && completeState(state);
-
-        std::coroutine_handle<> transferHandle;
         if (scope) [[likely]] {
-            transferHandle = scope->getTransferCoro(handle);
-        } else {
-            handle.destroy();
-            transferHandle = IExecutor::getCurrentDispatcherCoroutine();
+            return scope->getTransferCoro(handle);
         }
 
-        if (state != nullptr) {
-            releaseState(state);
-        }
-
-        if (resumedWaiter) {
-            auto const dispatcher = IExecutor::getCurrentDispatcherCoroutine();
-            return dispatcher ? dispatcher : std::noop_coroutine();
-        }
-        return transferHandle ? transferHandle : std::noop_coroutine();
+        handle.destroy();
+        return IExecutor::getCurrentDispatcherCoroutine();
     }
 }
