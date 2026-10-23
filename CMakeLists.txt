@@ -39,6 +39,8 @@ add_library(async STATIC
         src/one_thread_executor.cpp
         src/thread_pool_executor/thread_pool_dispatcher_task.cpp
         src/thread_pool_executor/thread_pool_executor.cpp
+        include/async/async_io.hpp
+        include/async/platform/threadpool_win32/async_file.hpp
 )
 
 add_library(async::async ALIAS async)
@@ -93,8 +95,13 @@ endif()
 target_compile_features(async PUBLIC cxx_std_23)
 
 target_compile_options(async PUBLIC
-        "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-foptimize-sibling-calls>"
+        # Ваше текущее правило для GCC / Clang
+        "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang>>:-foptimize-sibling-calls>"
+
+        # НОВОЕ ПРАВИЛО ДЛЯ MSVC (Visual Studio)
+        "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Ob1>"
 )
+
 
 target_include_directories(async
         PUBLIC

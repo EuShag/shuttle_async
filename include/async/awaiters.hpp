@@ -62,22 +62,10 @@ namespace shuttle::async {
         /**
          * @param scope Non-owning scope of the coroutine frame; `nullptr` is
          *              allowed for a task without a scope.
-         * @param state Non-owning address of shared state.
-         * @param retainState Function that temporarily retains the state.
-         * @param releaseState Function that releases the temporary reference.
-         * @param completeState Publishes completion and reports whether there was a waiter.
          */
         FinalAwaiter(
-            CoroScope* scope,
-            void* state,
-            StateOperation retainState,
-            StateOperation releaseState,
-            StateCompletion completeState) noexcept
-            : m_scope{scope},
-              m_state{state},
-              m_retainState{retainState},
-              m_releaseState{releaseState},
-              m_completeState{completeState} {}
+            CoroScope* scope) noexcept
+            : m_scope{scope} {}
 
         /// Always uses await_suspend to perform finalization.
         [[nodiscard]] bool await_ready() const noexcept { return false; }
