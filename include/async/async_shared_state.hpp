@@ -5,7 +5,6 @@
 #include <coroutine>
 #include <exception>
 #include <memory>
-#include <new>
 #include <type_traits>
 #include <utility>
 
@@ -13,6 +12,7 @@
 #include <async/error.hpp>
 #include <async/i_executor.hpp>
 #include <async/mi_allocator.hpp>
+#include <async/async_futex.hpp>
 
 namespace shuttle::async {
 
@@ -257,6 +257,8 @@ namespace shuttle::async {
             return m_allocation;
         }
 
+        AsyncFutex m_futex;
+
         /// Number of owning references; initially two (Promise and Future).
         std::atomic<uint32_t> m_referenceCount;
         /// Guards the task's one-time start.
@@ -270,7 +272,7 @@ namespace shuttle::async {
         /// State machine Pending -> Suspended/Signaled.
         alignas(64) std::atomic<AsyncTaskState> m_state;
         /// Sole registered waiter; the handle is non-owning.
-        alignas(64) std::coroutine_handle<> m_handle;
+        alignas(64) std::coroutine_handle<> m_handle{};
         /// Non-owning executor for the waiter; it must outlive the wait.
         IExecutor* m_executor;
         /// Inline result storage; T exists only after claimValue/placement new.

@@ -180,7 +180,7 @@ namespace shuttle::async::threadpool {
             return AsyncIo{std::move(createStateResult.value().future), token};
         }
 
-        AsyncIoToken(OVERLAPPED overlapped, HANDLE hFile, AsyncPromise<IoStatus>&& promise, AsyncFileTokenGuard guard)
+        AsyncIoToken(OVERLAPPED const &overlapped, HANDLE hFile, AsyncPromise<IoStatus>&& promise, AsyncFileTokenGuard guard)
             : m_overlapped{overlapped}, m_hFile{hFile}, m_ioPromise{std::move(promise)}, m_asyncFileTokenGuard{std::move(guard)} {}
 
         void cancel() override {
