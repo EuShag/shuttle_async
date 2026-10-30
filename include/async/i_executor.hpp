@@ -9,9 +9,25 @@
 
 #include <async/error.hpp>
 
+#include "async_result.hpp"
+
 namespace shuttle::async {
 
     class IExecutor;
+
+    enum class NodeState : uint32_t {
+        PENDING,   // Нода добавлена в стек, корутина еще выполняет await_suspend
+        SUSPEND,   // Корутина официально приостановлена и ждет сигнала
+        SIGNALED,  // Поток notify пришел раньше и разрешил не засыпать
+        CANCELLED
+    };
+
+    struct WaitNode {
+        std::coroutine_handle<>     handle{ nullptr };
+        IExecutor*                  executor{ nullptr };
+        std::atomic<NodeState>      nodeState{ NodeState::PENDING };
+        std::atomic_bool           parentCancelledFlag{ false };
+    };
 
     /**
      * @brief Non-owning information about the current thread's execution context.
@@ -21,8 +37,6 @@ namespace shuttle::async {
      * their corresponding objects.
      */
     struct alignas(64) ThreadContext {
-        /// Pool executor shared by multiple workers.
-        IExecutor* m_sharedExecutor{};
         /// Executor pinned to the current thread.
         IExecutor* m_threadPinnedExecutor{};
         /// Dispatcher coroutine for the current worker; empty outside a dispatcher.
@@ -60,20 +74,45 @@ namespace shuttle::async {
         }
 
         /**
-         * @brief Returns the shared executor for the current thread, if one is set.
-         * @return Non-owning pointer, or `nullptr` outside an executor context.
-         */
-        [[nodiscard]] static IExecutor* getCurrentSharedExecutor() noexcept {
-            return currentThreadContext.m_sharedExecutor;
-        }
-
-        /**
          * @brief Returns the dispatcher coroutine for the current thread.
          * @return Non-owning handle, or an empty handle outside a dispatcher.
          */
         [[nodiscard]] static std::coroutine_handle<> getCurrentDispatcherCoroutine() noexcept {
             return currentThreadContext.m_dispatcherCoroHandle;
         }
+
+        struct SwitchExecutorAwaiter final {
+            IExecutor* targetExecutor{ nullptr };
+
+            // 1. Быстрая проверка до приостановки
+            bool await_ready(WaitNode* pWaitNode) noexcept {
+                return pWaitNode->parentCancelledFlag && pWaitNode->parentCancelledFlag.load(std::memory_order_acquire) && targetExecutor == getThreadPinnedExecutor();
+            }
+
+            // 2. Проверка непосредственно в момент планирования в очереди
+            bool await_suspend(std::coroutine_handle<> currentCoro, WaitNode* pWaitNode) noexcept {
+                // FAST-PATH ЗАЩИТА: Если отмена прилетела прямо во время вызова await_suspend,
+                // мы никуда не пушим задачу, а сразу возвращаем текущий хэндл текущему потоку!
+                if (pWaitNode->parentCancelledFlag && pWaitNode->parentCancelledFlag.load(std::memory_order_acquire)) [[unlikely]] {
+                    return false;
+                }
+
+                if (targetExecutor) [[likely]] {
+                    // Пушим в lock-free воронку нового экзекьютора с барьером памяти Release
+                    if (targetExecutor->execute(currentCoro)) [[likely]] {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // 3. Финальный замер статуса отмены после пробуждения на новом ядре
+            AsyncResult<void> await_resume(WaitNode* pWaitNode) noexcept {
+                bool const cancelled = pWaitNode->parentCancelledFlag && pWaitNode->parentCancelledFlag.load(std::memory_order_acquire);
+                return AsyncResult<void>{ .isCancelled = cancelled };
+            }
+        };
+
     protected:
         /**
          * @brief RAII scope for setting a thread's TLS context.

@@ -5,7 +5,6 @@
 #include <coroutine>
 #include <exception>
 #include <memory>
-#include <new>
 #include <type_traits>
 #include <utility>
 
@@ -13,6 +12,7 @@
 #include <async/error.hpp>
 #include <async/i_executor.hpp>
 #include <async/mi_allocator.hpp>
+#include <async/async_event.hpp>
 
 namespace shuttle::async {
 
@@ -82,9 +82,15 @@ namespace shuttle::async {
             }
         }
 
+        bool prepare_wait(WaitNode* node) {
+            return m_futex.prepareWait(node);
+        }
+
         /// @return true if completion or cancellation has been signaled.
         [[nodiscard]] bool isSignaled() const noexcept {
-            return m_state.load(std::memory_order_acquire) == AsyncTaskState::Signaled;
+            // Теперь готовность — это просто единица в m_futexState,
+            // которую выставляет метод signalReady()
+            return m_hasResult.load(std::memory_order_acquire) == 1;
         }
 
         /// Atomically claims the single consumption of the result.
@@ -126,48 +132,29 @@ namespace shuttle::async {
             m_started.store(true, std::memory_order_release);
         }
 
-        /// Sets the cancellation flag; this alone does not publish completion.
         void cancel() noexcept {
-            m_isCanceled.store(true, std::memory_order_release);
+            // 1. Взводим флаг отмены с семантикой Release, чтобы все потоки увидели это
+            m_waitNode.parentCancelledFlag.store(true, std::memory_order_release);
+            AsyncEvent::tryCancel(&m_waitNode);
         }
 
         /// Marks an incomplete state as cancelled and publishes completion.
         /// An already completed state is unchanged.
         void abandon() noexcept {
             if (!isSignaled()) {
-                m_isCanceled.store(true, std::memory_order_release);
                 static_cast<void>(signalReady());
             }
         }
 
         /// @return true if the cancellation flag is set.
         [[nodiscard]] bool isCanceled() const noexcept {
-            return m_isCanceled.load(std::memory_order_acquire);
+            return m_waitNode.parentCancelledFlag.load(std::memory_order_acquire);
         }
 
         /// Returns the address of the atomic cancellation flag for awaiters.
         /// The pointer is non-owning and is valid only while the state is alive.
-        [[nodiscard]] std::atomic<bool>* cancellationFlag() noexcept {
-            return &m_isCanceled;
-        }
-
-        /**
-         * @brief Registers the sole waiter if the state is still Pending.
-         * @param handle Coroutine handle to pass to the executor when signaled.
-         * @param executor Non-owning executor used to resume the waiter.
-         * @return true if the state became Suspended; otherwise, no waiter was registered.
-         */
-        [[nodiscard]] bool tryRegisterWaiter(
-            std::coroutine_handle<> handle,
-            IExecutor* executor) noexcept
-        {
-            m_handle = handle;
-            m_executor = executor;
-
-            AsyncTaskState expected = AsyncTaskState::Pending;
-            return m_state.compare_exchange_strong(
-                expected, AsyncTaskState::Suspended,
-                std::memory_order_release, std::memory_order_relaxed);
+        [[nodiscard]] WaitNode* waitNode() noexcept {
+            return &m_waitNode;
         }
 
         /**
@@ -177,30 +164,18 @@ namespace shuttle::async {
          * @note If execute() fails, the waiter resumes directly on the calling
          *       thread. A repeated signal does not resume it again.
          */
+        // ЗАМЕНИТЬ СТАРЫЙ signalReady НА ЭТО:
         [[nodiscard]] bool signalReady() noexcept {
-            AsyncTaskState expected = AsyncTaskState::Pending;
-            if (m_state.compare_exchange_strong(
-                    expected, AsyncTaskState::Signaled,
-                    std::memory_order_release, std::memory_order_relaxed)) {
-                return false;
-            }
+            // 1. Атомарно объявляем, что данные готовы (переводим из 0 в 1)
+            m_hasResult.store(true, std::memory_order_release);
 
-            expected = AsyncTaskState::Suspended;
-            if (!m_state.compare_exchange_strong(
-                    expected, AsyncTaskState::Signaled,
-                    std::memory_order_acq_rel, std::memory_order_acquire)) {
-                return false;
-            }
+            // 2. Будим абсолютно всех, кто успел сесть на наш футекс.
+            // Интрузивный футекс сам знает, на каких экзекьюторах их нужно продолжить.
+            m_futex.notifyAll();
 
-            if (m_executor && m_handle) [[likely]] {
-                auto resumeResult = m_executor->execute(m_handle);
-                if (!resumeResult) [[unlikely]] {
-                    m_handle.resume();
-                }
-                return true;
-            }
-            return false;
+            return true;
         }
+
 
         /// Returns a reference to the result, moving it from storage.
         /// Call only after successful completion and the sole claimConsumer().
@@ -236,9 +211,6 @@ namespace shuttle::async {
             DestroyAllocation destroyAllocation) noexcept
             : m_referenceCount(references),
               m_started(started),
-              m_state(AsyncTaskState::Pending),
-              m_handle(nullptr),
-              m_executor(nullptr),
               m_allocation(allocation),
               m_destroyAllocation(destroyAllocation) {}
 
@@ -262,17 +234,16 @@ namespace shuttle::async {
         /// Guards the task's one-time start.
         std::atomic<bool> m_started;
         /// Cooperative cancellation flag; setting it is separate from signaling.
-        std::atomic<bool> m_isCanceled{false};
+        WaitNode m_waitNode{};
         /// Claimed before placement-constructing the result.
         std::atomic<bool> m_valueSet{false};
         /// Atomic claim for the sole consumer.
         alignas(64) std::atomic<bool> m_consumerClaimed{false};
-        /// State machine Pending -> Suspended/Signaled.
-        alignas(64) std::atomic<AsyncTaskState> m_state;
-        /// Sole registered waiter; the handle is non-owning.
-        alignas(64) std::coroutine_handle<> m_handle;
-        /// Non-owning executor for the waiter; it must outlive the wait.
-        IExecutor* m_executor;
+        // ДОБАВИТЬ:
+        // Поле m_state оставляем, но теперь это ПРОСТОЙ атомик флага готовности (0 - не готово, 1 - готово)
+        alignas(64) std::atomic<bool> m_hasResult{ false };
+        AsyncEvent                        m_futex;
+
         /// Inline result storage; T exists only after claimValue/placement new.
         alignas(64) char m_valueBuf[std::same_as<T, void> ? 1 : sizeof(ValueStorage)]{};
         /// Start of the AllocationBlock containing the saved rebound allocator.
@@ -326,101 +297,104 @@ namespace shuttle::async {
             return *this;
         }
 
+        AsyncSharedState<T>& getState() {
+            return *m_state;
+        }
+
         /**
          * @brief Awaiter that registers a coroutine as a state waiter.
          *
-         * Holds its own reference to the state. The executor and cancellation
-         * flag are non-owning pointers and must remain alive throughout the wait.
+         * Holds its own reference to the state. The executor is a non-owning
+         * pointer and must remain alive throughout the wait.
          */
-        struct FutureAwaiter {
-            /// State held by this awaiter's additional reference.
-            AsyncSharedState<T>* m_state{nullptr};
+        struct FutureAwaiter final {
             /// Non-owning executor used to resume the waiting coroutine.
             IExecutor* m_executor{nullptr};
-            /// @if RU
-            /// Не владеющий флаг отмены родительской задачи.
-            /// @endif
-            /// @if EN
-            /// Non-owning cancellation flag of the parent task.
-            /// @endif
-            std::atomic<bool>* parentCancelledFlag{nullptr};
+            WaitNode node{};
 
-            /// Retains the state and stores the executor/cancellation flag.
+            AsyncFuture m_future;
+
+            /// Retains the state and stores the executor.
             FutureAwaiter(
-                AsyncSharedState<T>* state,
-                IExecutor* executor,
-                std::atomic<bool>* cancellationFlag) noexcept
-                : m_state(state), m_executor(executor), parentCancelledFlag(cancellationFlag) {
-                if (m_state) {
-                    m_state->retain();
-                }
-            }
-
-            /// Releases the state reference owned by the awaiter.
-            ~FutureAwaiter() noexcept {
-                if (m_state) {
-                    m_state->release();
-                }
-            }
+                AsyncFuture&& future,
+                IExecutor* executor) noexcept
+                : m_executor(executor), m_future{std::move(future)} {}
 
             /// Awaiter is non-copyable to avoid ambiguous reference ownership.
             FutureAwaiter(const FutureAwaiter&) = delete;
             FutureAwaiter& operator=(const FutureAwaiter&) = delete;
 
             /// Moves the reference and wait parameters.
-            FutureAwaiter(FutureAwaiter&& other) noexcept
-                : m_state(std::exchange(other.m_state, nullptr)),
-                  m_executor(other.m_executor),
-                  parentCancelledFlag(other.parentCancelledFlag) {}
-
+            FutureAwaiter(FutureAwaiter&& other) noexcept :
+                m_executor{std::exchange(other.m_executor, nullptr)}, m_future{std::move(other.m_future)} {}
             /// Releases the previous reference and takes the source awaiter's reference.
             FutureAwaiter& operator=(FutureAwaiter&& other) noexcept {
-                if (this != &other) {
-                    if (m_state) {
-                        m_state->release();
-                    }
-                    m_state = std::exchange(other.m_state, nullptr);
-                    m_executor = other.m_executor;
-                    parentCancelledFlag = other.parentCancelledFlag;
-                }
+                if (this == &other) return *this;
+                m_executor = std::exchange(other.m_executor, nullptr);
+                m_future = std::move(other.m_future);
                 return *this;
             }
 
-            /// @return true for an empty Future or an already signaled state.
-            [[nodiscard]] bool await_ready() const noexcept {
-                return !m_state || m_state->isSignaled();
+            /// @brief Соответствие концепту: проверка готовности с учетом инжектированного флага.
+            /// @return true для пустой Future, отмененной задачи или уже сигнального состояния.
+            [[nodiscard]] bool await_ready(WaitNode* pCoroNode) const noexcept {
+                // Проверяем флаг отмены, который промис уже зашил в ноду
+                if (pCoroNode && pCoroNode->parentCancelledFlag &&
+                    pCoroNode->parentCancelledFlag.load(std::memory_order_acquire)) [[unlikely]]
+                {
+                    return true;
+                }
+                return m_future.isSignaled();
             }
 
             /**
-             * @brief Registers the waiter or continues immediately.
+             * @brief Соответствие концепту: регистрация воркера в футексе с поддержкой флага отмены.
              * @param handle Coroutine that is waiting.
+             * @param pCancelled Указатель на атомарный флаг отмены родительской задачи.
              * @return Dispatcher handle if the wait was registered; otherwise,
-             *         the original handle for immediate continuation.
+             *         the original handle for immediate continuation on the current thread.
              */
-            std::coroutine_handle<> await_suspend(std::coroutine_handle<> handle) noexcept {
-                if (parentCancelledFlag
-                    && parentCancelledFlag->load(std::memory_order_acquire)) {
-                    return handle;
+            bool await_suspend(std::coroutine_handle<> handle, WaitNode* pCoroNode) noexcept {
+                if (!pCoroNode) [[unlikely]] return false;
+                if (!m_future.hasState()) [[unlikely]] return false;
+
+                // 1. FAST-PATH ЗАЩИТА: Если отмена взведена ДО вызова — никуда не ложимся,
+                // мгновенно возвращаем false для продолжения на текущем ядре!
+                // Обратите внимание на исправленный синтаксис стрелочки -> к указателю атомика
+                if (pCoroNode->parentCancelledFlag && pCoroNode->parentCancelledFlag.load(std::memory_order_acquire)) [[unlikely]] {
+                    return false;
                 }
-                if (m_state && m_state->tryRegisterWaiter(handle, m_executor)) {
-                    auto const dispatcher = IExecutor::getCurrentDispatcherCoroutine();
-                    return dispatcher ? dispatcher : std::noop_coroutine();
+
+                // Зашиваем хэндл и наш вычислительный экзекьютор прямо в готовую ноду из промиса
+                pCoroNode->handle = handle;
+                pCoroNode->executor = m_executor;
+
+                // 2. Ложимся в ваш lock-free футекс.
+                if (m_future.getState().prepare_wait(pCoroNode)) {
+
+                    // 3. МГНОВЕННАЯ LOCK-FREE ОТМЕНА (Double-Check Barrier):
+                    // Если отмена прилетела ровно в ту наносекунду, пока мы пушились в ConcurrentQueue,
+                    // мы принудительно выбиваем себя сами из любого потока через tryCancel!
+                    if (pCoroNode->parentCancelledFlag && pCoroNode->parentCancelledFlag.load(std::memory_order_acquire)) [[unlikely]] {
+                        AsyncEvent::tryCancel(pCoroNode);
+                    }
+
+                    return true; // Корутина успешно зарегистрирована, поток уходит к диспетчеру
                 }
-                return handle;
+
+                return false; // Сигнал уже прилетел на взлете, спать не нужно
             }
 
             /**
-             * @brief Returns AsyncResult after wakeup.
+             * @brief Соответствие концепту: извлечение результатов с учетом флага отмены.
+             * @param pWaitNode Указатель на атомарный флаг отмены родительской задачи.
              * @return For T, the moved result or a value-initialized T{} on
              *         cancellation; for void, only the cancellation flag.
-             * @note A cancelled T requires T to be default-initializable.
              */
-            [[nodiscard]] auto await_resume() noexcept {
+            [[nodiscard]] auto await_resume(WaitNode* pWaitNode) noexcept {
                 const bool cancelled =
-                    (parentCancelledFlag
-                        && parentCancelledFlag->load(std::memory_order_acquire))
-                    || !m_state
-                    || m_state->isCanceled();
+                    (pWaitNode->parentCancelledFlag && pWaitNode->parentCancelledFlag.load(std::memory_order_acquire))
+                    || m_future.isCanceled();
 
                 if constexpr (std::same_as<T, void>) {
                     return AsyncResult<void>{.isCancelled = cancelled};
@@ -429,99 +403,10 @@ namespace shuttle::async {
                         return AsyncResult<T>{.value = T{}, .isCancelled = true};
                     }
                     return AsyncResult<T>{
-                        .value = m_state->extractValue(), .isCancelled = false};
+                        .value = m_future.getState().extractValue(), .isCancelled = false};
                 }
             }
         };
-
-        /**
-         * @brief Awaitable object that provides one-time access to a FutureAwaiter.
-         *
-         * Holds its own reference to the state until destruction; only one
-         * awaiter may be obtained from the awaitable/Future for this state.
-         */
-        struct FutureAwaitable {
-            /// State held by the awaitable's additional reference.
-            AsyncSharedState<T>* m_state{nullptr};
-            /// Non-owning executor passed to the created awaiter.
-            IExecutor* m_executor{nullptr};
-            /// Local guard against awaiting this object more than once.
-            bool m_awaited{false};
-
-            /// Retains the state until the awaitable is destroyed.
-            /// @param state State for which the owned reference is created.
-            /// @param executor Non-owning executor used to resume the waiter.
-            FutureAwaitable(AsyncSharedState<T>* state, IExecutor* executor) noexcept
-                : m_state(state), m_executor(executor) {
-                if (m_state) {
-                    m_state->retain();
-                }
-            }
-
-            /// Releases the awaitable's reference.
-            ~FutureAwaitable() noexcept {
-                if (m_state) {
-                    m_state->release();
-                }
-            }
-
-            /// Awaitable is move-only because it owns a reference to the state.
-            FutureAwaitable(const FutureAwaitable&) = delete;
-            FutureAwaitable& operator=(const FutureAwaitable&) = delete;
-
-            /// Transfers the reference from the source.
-            /// @param other Source, which no longer owns the state after the move.
-            FutureAwaitable(FutureAwaitable&& other) noexcept
-                : m_state(std::exchange(other.m_state, nullptr)),
-                  m_executor(other.m_executor),
-                  m_awaited(other.m_awaited) {}
-
-            /// Releases the previous reference and takes the source's reference.
-            /// @param other Source; self-assignment is safe.
-            /// @return Reference to this awaitable.
-            FutureAwaitable& operator=(FutureAwaitable&& other) noexcept {
-                if (this != &other) {
-                    if (m_state) {
-                        m_state->release();
-                    }
-                    m_state = std::exchange(other.m_state, nullptr);
-                    m_executor = other.m_executor;
-                    m_awaited = other.m_awaited;
-                }
-                return *this;
-            }
-
-            /// Claims the single consumption of the result.
-            /// @return false if already awaited or if no state is present.
-            [[nodiscard]] bool claimAwait() noexcept {
-                if (m_awaited || !m_state || !m_state->claimConsumer()) {
-                    return false;
-                }
-                m_awaited = true;
-                return true;
-            }
-
-            /// Creates an awaiter with the specified parent-task cancellation flag.
-            /// @param cancelFlag Non-owning pointer or nullptr.
-            /// @return Move-only awaiter holding its own state reference.
-            FutureAwaiter prepareAwaiter(std::atomic<bool>* cancelFlag) noexcept {
-                return FutureAwaiter{m_state, m_executor, cancelFlag};
-            }
-
-            /// Awaits a temporary awaitable; reusing it terminates the process.
-            FutureAwaiter operator co_await() && noexcept {
-                if (!claimAwait()) [[unlikely]] {
-                    std::terminate();
-                }
-                return prepareAwaiter(nullptr);
-            }
-        };
-
-        /// Creates an awaitable configured with a resumption executor.
-        /// @param executor Non-owning executor; must remain alive until the wait completes.
-        [[nodiscard]] FutureAwaitable prepareAwaitable(IExecutor* executor) noexcept {
-            return FutureAwaitable{m_state, executor};
-        }
 
         /// @return true if the state exists and is already signaled.
         [[nodiscard]] bool isSignaled() const noexcept {
@@ -572,6 +457,10 @@ namespace shuttle::async {
         /// Claims the single consumption of the result.
         [[nodiscard]] bool claimConsumer() noexcept {
             return m_state && m_state->claimConsumer();
+        }
+
+        FutureAwaiter getAwaiter(IExecutor* executor) {
+            return {std::move(*this), executor};
         }
 
     private:
@@ -748,8 +637,8 @@ namespace shuttle::async {
         }
 
         /// Returns a non-owning pointer to the cancellation flag, or nullptr.
-        [[nodiscard]] std::atomic<bool>* cancellationFlag() noexcept {
-            return m_state ? m_state->cancellationFlag() : nullptr;
+        [[nodiscard]] WaitNode* waitNode() noexcept {
+            return m_state ? m_state->waitNode() : nullptr;
         }
 
     private:

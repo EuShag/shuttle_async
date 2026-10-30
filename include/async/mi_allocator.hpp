@@ -124,6 +124,9 @@ namespace shuttle::async {
 
     };
 
+    static void* allocateBytes(std::size_t bytes, std::size_t alignment);
+    static void deallocateBytes(void* ptr);
+
     /**
      * @brief Compares two MiAllocator instances of different types.
      * @return Always true because the allocators are stateless and interchangeable.
@@ -155,10 +158,7 @@ namespace shuttle::async {
 
             // 1. Явно вызываем деструктор объекта типа T
             ptr->~T();
-
-            // 2. Освобождаем память через наш MiAllocator
-            MiAllocator<T> alloc;
-            alloc.deallocate(ptr, 1);
+            deallocateBytes(ptr);
         }
     };
 
@@ -184,10 +184,8 @@ namespace shuttle::async {
         static_assert(std::is_nothrow_constructible_v<T, Args...>,
             "Critical Error: Type T must be completely noexcept constructible with provided arguments!");
 
-        MiAllocator<T> alloc;
-
         // 1. Выделяем сырую память под один объект типа T через мималлок
-        T* memory = alloc.allocate(1);
+        T* memory = allocateBytes(sizeof(T), 64ULL);
 
         // Предохранитель на случай тотальной нехватки RAM на хосте
         if (!memory) [[unlikely]] {

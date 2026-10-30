@@ -35,4 +35,14 @@ namespace shuttle::async {
         // mimalloc will atomically determine which thread and memory page this address belongs to.
         mi_free(ptr);
     }
+
+    void* allocateBytes(std::size_t bytes, std::size_t alignment) {
+        void* ptr = mi_malloc_aligned(bytes, alignment);
+
+        return ptr;
+    }
+
+    void deallocateBytes(void *ptr) {
+        mi_free(ptr);
+    }
 } // namespace shuttle::async

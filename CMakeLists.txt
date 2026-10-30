@@ -41,6 +41,22 @@ add_library(async STATIC
         src/thread_pool_executor/thread_pool_executor.cpp
         include/async/async_io.hpp
         include/async/platform/threadpool_win32/async_file.hpp
+        include/async/async_runtime.hpp
+        include/async/async_timer.hpp
+        include/async/async_event.hpp
+        include/async/platform/threadpool_win32/async_runtime.hpp
+        include/async/platform/threadpool_win32/async_event.hpp
+        include/async/platform/threadpool_win32/async_timer.hpp
+        include/async/i_cancellable.hpp
+        src/platform/threadpool_win32/async_file.cpp
+        src/platform/threadpool_win32/async_timer.cpp
+        src/platform/threadpool_win32/async_runtime.cpp
+        src/platform/threadpool_win32/async_event.cpp
+        include/async/platform/threadpool_win32/utils.hpp
+        include/async/runtime_result_code.hpp
+        src/platform/threadpool_win32/utils.cpp
+        src/platform/threadpool_win32/async_io_token.cpp
+        include/async/intrusive_ptr.hpp
 )
 
 add_library(async::async ALIAS async)
