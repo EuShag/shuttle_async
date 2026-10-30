@@ -148,7 +148,6 @@ namespace shuttle::async {
 
         ThreadContextGuard threadContextGuard{
             ThreadContext{
-                .m_sharedExecutor = this,
                 .m_threadPinnedExecutor = this,
                 .m_dispatcherCoroHandle = dispatcherHandle
             }

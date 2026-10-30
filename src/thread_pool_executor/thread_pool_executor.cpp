@@ -191,14 +191,13 @@ namespace shuttle::async {
 
         // Инициализируем вшитый контекст продолжения прямо перед пуском
         ctx.m_continuation = WorkerContext::WorkerExecutor{&ctx, this};
-        ctx.m_randomState = static_cast<uint32_t>(id + 1) | 1u;
+        ctx.m_randomState = id + 1 | 1u;
 
         auto dispatcher = runDispatcher(&ctx);
         ctx.m_dispatcher = dispatcher;
 
         if (!dispatcher.has_value()) [[unlikely]] { m_crashCallback(ctx.m_id, dispatcher.error()); return; }
         ThreadContextGuard currentExecutorGuard({
-            .m_sharedExecutor = this,
             .m_threadPinnedExecutor = &ctx.m_continuation,
             .m_dispatcherCoroHandle = dispatcher
         });

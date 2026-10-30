@@ -1,0 +1,8 @@
+//
+// Created by Shagu on 28.10.2026.
+//
+
+#ifndef SHUTTLE_ASYNC_ASYNC_EVENT_HPP
+#define SHUTTLE_ASYNC_ASYNC_EVENT_HPP
+
+#endif //SHUTTLE_ASYNC_ASYNC_EVENT_HPP

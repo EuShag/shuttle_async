@@ -9,26 +9,114 @@
 #include <async/async_shared_state.hpp>
 #include <async/error.hpp>
 #include <async/mi_allocator.hpp>
-#include <async/coro_scope.hpp>
 #include <async/awaiters.hpp>
+
+#include "i_cancellable.hpp"
 
 namespace shuttle::async {
 
-    /**
-     * @brief Marker for a cooperative cancellation check point.
-     *
-     * In an AsyncTask coroutine, `co_await cancellationPoint` returns
-     * AsyncResult<void> whose flag reflects the task's current cancellation
-     * flag; it does not suspend the coroutine.
-     */
-    struct CancellationPoint {};
-    /// Global immutable object for `co_await cancellationPoint`.
-    inline constexpr CancellationPoint cancellationPoint{};
-
-    template <typename T>
-    class CancellationToken;
-
     class CoroScope;
+
+    /**
+     * @brief Ultra-lightweight awaiter for cooperative time-slicing (yield).
+     *
+     * Re-enqueues the current coroutine into the back of the local or current
+     * executor's queue to let other same-priority tasks execute.
+     */
+    struct YieldAwaiter final {
+        /// Always false: we must suspend to let the scheduler breath.
+        [[nodiscard]] constexpr bool await_ready() const noexcept {
+            return false;
+        }
+
+        /// Enqueues the coroutine handle to the current thread's executor.
+        /// @param currentCoro Handle of the current coroutine.
+        /// @return Dispatcher handle to return control to the host worker loop.
+        bool await_suspend(std::coroutine_handle<> currentCoro) noexcept {
+            if (IExecutor* currentExecutor = IExecutor::getThreadPinnedExecutor()) [[likely]] {
+                // Пушим в локальную деку/очередь текущего воркера.
+                // Это работает со скоростью света, так как кэш-лайн горячий и принадлежит этому же ядру!
+                if(!currentExecutor->execute(currentCoro).has_value()) std::terminate();
+            } else {
+                // Аварийный путь: если вызвали yield вне пула (например, на потоке Win32 окна)
+                return false;
+            }
+
+            // Освобождаем текущий поток ОС, отдавая управление главному циклу воркера (диспетчеру)
+            return true;
+        }
+
+        /// Yield doesn't enforce immediate cancellation drop by default,
+        /// but returns a lightweight status if the loop wants to check it manually.
+        constexpr void await_resume() const noexcept {}
+    };
+
+    inline YieldAwaiter yield() {
+        return {};
+    }
+
+    template <typename TAwaiter>
+    class NonCancellableAwaiter final {
+    public:
+        // Конструктор забирает оригинальный авайтер, а ноду настраивает на месте
+        explicit NonCancellableAwaiter(TAwaiter awaiter) noexcept
+            : m_awaiter{std::move(awaiter)}
+            , m_dummyNode{
+                .handle = nullptr,
+                .executor = nullptr,
+                .nodeState = { NodeState::PENDING },
+                // Привязываем указатель на наш вечный false
+                .parentCancelledFlag = false
+            }
+        {}
+
+        // Запрещаем любое копирование и перемещение, так как нода содержит атомики
+        // и её адрес в стеке корутины должен быть намертво зафиксирован!
+        NonCancellableAwaiter(const NonCancellableAwaiter&) = delete;
+        NonCancellableAwaiter& operator=(const NonCancellableAwaiter&) = delete;
+        NonCancellableAwaiter(NonCancellableAwaiter&&) = delete;
+        NonCancellableAwaiter& operator=(NonCancellableAwaiter&&) = delete;
+
+        // 1. Игнорируем внешнюю ноду промиса, передаем адрес НАШЕЙ локальной m_dummyNode
+        [[nodiscard]] bool await_ready(WaitNode*) noexcept(noexcept(m_awaiter.await_ready(nullptr))) {
+            return m_awaiter.await_ready(&m_dummyNode);
+        }
+
+        // 2. Оригинальный авайтер (например, ожидание фенса) честно запишет свой handle/executor
+        // в нашу локальную m_dummyNode и уйдет спать в футекс без риска экстренной отмены
+        bool await_suspend(std::coroutine_handle<> coro, WaitNode*) noexcept {
+            return m_awaiter.await_suspend(coro, &m_dummyNode);
+        }
+
+        // 3. Возвращаем чистый результат без флага отмены
+        [[nodiscard]] auto await_resume(WaitNode*) noexcept(noexcept(m_awaiter.await_resume(nullptr))) {
+            return m_awaiter.await_resume(&m_dummyNode);
+        }
+
+    private:
+        TAwaiter m_awaiter;
+        WaitNode m_dummyNode; // Нода живет на стеке корутины внутри эвейтера!
+    };
+
+    // Наш фабричный хелпер. Благодаря Guaranteed Copy Elision в C++17/20,
+    // компилятор соберет NonCancellableAwaiter СРАЗУ в целевой точке await_transform,
+    // минуя вызовы move-конструкторов, что обходит ограничение атомиков!
+    template <typename TAwaiter>
+    [[nodiscard]] auto nonCancellable(TAwaiter&& awaiter) noexcept {
+        return NonCancellableAwaiter<std::remove_cvref_t<TAwaiter>>{std::forward<TAwaiter>(awaiter)};
+    }
+
+    template <typename T, typename ResultType = void>
+    concept CancellableAwaiter = requires(T awaiter, std::coroutine_handle<> coro, WaitNode* pWaitNode) {
+        // await_ready принимает флаг и возвращает bool
+        { awaiter.await_ready(pWaitNode) } -> std::same_as<bool>;
+
+        // await_suspend ПРИНИМАЕТ хэндл И флаг отмены, возвращая хэндл для Symmetric Transfer
+        { awaiter.await_suspend(coro, pWaitNode) } -> std::same_as<bool>;
+
+        // await_resume принимает флаг и возвращает итоговый результат
+        { awaiter.await_resume(pWaitNode) } -> std::same_as<ResultType>;
+    };
 
     /**
      * @brief Helper policy for return_value/return_void in an AsyncTask promise.
@@ -89,7 +177,7 @@ namespace shuttle::async {
      * @tparam T Return type; defaults to void.
      */
     template <typename T = void>
-    class [[nodiscard]] AsyncTask final {
+    class [[nodiscard]] AsyncTask final : public ICancellable {
     public:
         /**
          * @brief Coroutine promise that connects the frame, scope, and shared state.
@@ -136,9 +224,6 @@ namespace shuttle::async {
                 if (m_stateCreationFailed) [[unlikely]] {
                     return AsyncTask{Error::allocation_failure, coroHandle};
                 }
-                if (m_coroScope) [[likely]] {
-                    m_coroScope->registerCoroHandle(coroHandle);
-                }
                 return AsyncTask{std::move(m_future), coroHandle};
             }
 
@@ -179,121 +264,39 @@ namespace shuttle::async {
                 return awaitable.prepareAwaiter(m_promise.cancellationFlag());
             }
 
-            /// Configures the nested task to use the current thread's pinned executor.
-            /// @tparam U Result type of the nested task.
-            /// @param task Nested task consumed by the sole consumer.
-            /// @return Awaiter that propagates this task's cancellation flag.
-            template <typename U>
-            [[nodiscard]] AsyncFuture<U>::FutureAwaiter await_transform(AsyncTask<U>& task) noexcept {
-                return task.getAwaiter(
-                    IExecutor::getThreadPinnedExecutor(), m_promise.cancellationFlag());
-            }
-
-            /// Configures the nested task to use the current thread's pinned executor.
-            /// @tparam U Result type of the nested task.
-            /// @param task Temporary or moved task.
-            /// @return Awaiter that propagates this task's cancellation flag.
-            template <typename U>
-            [[nodiscard]] AsyncFuture<U>::FutureAwaiter await_transform(AsyncTask<U>&& task) noexcept {
-                return task.getAwaiter(
-                    IExecutor::getThreadPinnedExecutor(), m_promise.cancellationFlag());
-            }
-
-            /// Checks the cancellation flag without suspending.
-            struct CancellationAwaiter {
-                /// Non-owning flag of the parent task.
-                std::atomic<bool>* flag;
-                /// Always ready: cancellation is only read.
-                [[nodiscard]] bool await_ready() const noexcept { return true; }
-                /// Unused because await_ready is always true.
-                void await_suspend(std::coroutine_handle<>) const noexcept {}
-                /// Returns a snapshot of the cancellation flag.
-                [[nodiscard]] AsyncResult<void> await_resume() const noexcept {
-                    return AsyncResult<void>{.isCancelled = flag->load(std::memory_order_acquire)};
-                }
-            };
-
-            /// Converts a cancellationPoint marker to a CancellationAwaiter.
-            [[nodiscard]] CancellationAwaiter await_transform(CancellationPoint) noexcept {
-                return CancellationAwaiter{m_promise.cancellationFlag()};
-            }
-
-            /// Forwards other unsupported awaitables without transformation.
-            /// @tparam Awaitable Type of the arbitrary awaitable.
-            /// @param awaitable Object forwarded with its value category preserved.
-            /// @return The original object or a reference to it.
-            template <typename Awaitable>
-                requires (!std::same_as<std::remove_cvref_t<Awaitable>, CancellationPoint>)
-                    && (!requires(std::remove_cvref_t<Awaitable>& awaitable, std::atomic<bool>* flag) {
-                        awaitable.claimAwait();
-                        awaitable.prepareAwaiter(flag);
-                    })
-            decltype(auto) await_transform(Awaitable&& awaitable) noexcept {
-                return std::forward<Awaitable>(awaitable);
-            }
-
             /**
-             * @brief Awaiter that switches the current coroutine to a specified executor.
-             *
-             * Always goes through await_suspend. If cancellation is already set,
-             * the executor is null, or execute() fails, it continues the current
-             * handle on the current thread; on success, it returns the current
-             * thread's dispatcher.
+             * @brief Транспортный враппер, передающий флаг отмены во все стадии оригинального авайтера.
              */
-            struct SwitchExecutorAwaiter final {
-                /// Non-owning target executor.
-                IExecutor* targetExecutor{ nullptr };
-                /// Non-owning cancellation flag of the parent task.
-                std::atomic<bool>* parentCancelledFlag{ nullptr };
+            template <typename TAwaiter>
+            class TransformedAwaiter final {
+            public:
+                TransformedAwaiter(TAwaiter awaiter, WaitNode* pWaitNode) noexcept
+                    : m_awaiter{std::move(awaiter)} , m_pWaitNode{pWaitNode} {}
 
-                /// Always false: the switch attempt is performed in await_suspend.
-                [[nodiscard]] constexpr bool await_ready() const noexcept {
-                    // Мы ВСЕГДА приостанавливаемся, чтобы честно выполнить
-                    // маршаллинг задачи в очередь нового исполнителя
-                    return false;
+                [[nodiscard]] bool await_ready() noexcept(noexcept(m_awaiter.await_ready(m_pWaitNode))) {
+                    return m_awaiter.await_ready(m_pWaitNode);
                 }
 
-                /// Enqueues the coroutine handle on the executor or continues it immediately.
-                /// @param currentCoro Handle of the current coroutine.
-                /// @return Dispatcher handle on successful enqueue; otherwise, currentCoro.
-                std::coroutine_handle<> await_suspend(std::coroutine_handle<> currentCoro) noexcept {
-                    // FAST-PATH ЗАЩИТА: Если корутина отменена прямо перед прыжком —
-                    // вообще никуда не летим, мгновенно просыпаемся на текущем месте для эвакуации!
-                    if (parentCancelledFlag && parentCancelledFlag->load(std::memory_order_acquire)) {
-                        return currentCoro;
-                    }
-
-                    if (targetExecutor) [[likely]] {
-                        // Толкаем текущий хэндл в лок-фри воронку нового экзекьютора!
-                        // Метод execute() сам разберется, пушить в деку или на Шаг 0 воркера.
-                        if (!targetExecutor->execute(currentCoro)) [[unlikely]] {
-                            return currentCoro;
-                        }
-                    } else {
-                        return currentCoro;
-                    }
-
-                    // Текущий физический поток ОС полностью свободен, уходит в анабиоз или за задачами!
-                    return IExecutor::getCurrentDispatcherCoroutine();
+                // Передаем хэндл корутины и флаг отмены в оригинальный авайтер
+                std::coroutine_handle<> await_suspend(std::coroutine_handle<> coro) noexcept {
+                    return m_awaiter.await_suspend(coro, m_pWaitNode) ? IExecutor::getCurrentDispatcherCoroutine() : coro;
                 }
 
-                /// Returns the cancellation state after switching or immediate continuation.
-                [[nodiscard]] AsyncResult<void> await_resume() const noexcept {
-                    bool const cancelled = parentCancelledFlag ? parentCancelledFlag->load(std::memory_order_acquire) : false;
-
-                    // Возвращаем ультралегкий флаг. Если false — пользователь прервет выполнение.
-                    return AsyncResult<void>{ .isCancelled = cancelled };
+                [[nodiscard]] auto await_resume() noexcept(noexcept(m_awaiter.await_resume(m_pWaitNode))) {
+                    return m_awaiter.await_resume(m_pWaitNode);
                 }
+
+            private:
+                TAwaiter  m_awaiter;
+                WaitNode* m_pWaitNode;
             };
 
-            /// Allows `co_await executor` to switch executors.
-            /// @param explicitExecutor Non-owning target executor or nullptr.
-            /// @return Switch awaiter; nullptr means immediate continuation.
-            [[nodiscard]] auto await_transform(IExecutor* explicitExecutor) noexcept {
-                return SwitchExecutorAwaiter{
-                    .targetExecutor = explicitExecutor,
-                    .parentCancelledFlag = m_promise.cancellationFlag()
-                };
+            template <typename Awaiter>
+                auto await_transform(Awaiter&& awaiter) noexcept {
+                return TransformedAwaiter<std::remove_cvref_t<Awaiter>>(
+                    std::forward<Awaiter>(awaiter),
+                    m_promise.waitNode()
+                );
             }
 
             /// Creates allocator-owned shared state; failure is recorded for the return object.
@@ -341,7 +344,7 @@ namespace shuttle::async {
          * remains alive until its own finalization; this destructor does not
          * explicitly destroy the frame.
          */
-        ~AsyncTask() noexcept {
+        ~AsyncTask() noexcept override {
             if (m_handle) {
                 if (m_error) {
                     m_handle.destroy();
@@ -356,7 +359,7 @@ namespace shuttle::async {
          * @return Token for waiting for completion; the cancellation request
          *         alone does not signal the Future or interrupt the coroutine body.
          */
-        [[nodiscard]] CancellationToken<T> cancel() noexcept;
+        void cancel() noexcept override;
 
         /// @return Current cancellation flag state; an empty task is considered cancelled.
         [[nodiscard]] bool isCanceled() const noexcept {
@@ -403,7 +406,7 @@ namespace shuttle::async {
          * @note The frame handle is removed from AsyncTask so its destructor will
          *       not spuriously cancel it after ownership is transferred to the awaiter.
          */
-        [[nodiscard]] AsyncFuture<T>::FutureAwaitable get(IExecutor* explicitExecutor) noexcept {
+        [[nodiscard]] AsyncFuture<T>::FutureAwaiter get(IExecutor* explicitExecutor) noexcept {
             requireValid();
             startForAwait();
             if (explicitExecutor == nullptr && !m_future.isSignaled()) [[unlikely]] {
@@ -412,7 +415,7 @@ namespace shuttle::async {
             /// Safely transfer the handle to the awaiter, clearing it locally via std::exchange.
             /// The ~AsyncTask() destructor will see nullptr and avoid triggering a false cancellation.
             std::exchange(m_handle, nullptr);
-            return m_future.prepareAwaitable(explicitExecutor);
+            return m_future.getAwaiter(explicitExecutor);
         }
 
         /**
@@ -423,7 +426,7 @@ namespace shuttle::async {
          *       If no executor is available and the task is incomplete, terminate is called.
          * @note Thread safety: does not synchronize concurrent use of this object.
          */
-        [[nodiscard]] AsyncFuture<T>::FutureAwaitable get() noexcept {
+        [[nodiscard]] AsyncFuture<T>::FutureAwaiter get() noexcept {
             requireValid();
             startForAwait();
             IExecutor* const executor = IExecutor::getThreadPinnedExecutor();
@@ -431,21 +434,19 @@ namespace shuttle::async {
                 std::terminate();
             }
             std::exchange(m_handle, nullptr);
-            return m_future.prepareAwaitable(executor);
+            return m_future.getAwaiter(executor);
         }
 
         /**
          * @brief Creates an awaiter for nested co_await with the parent's cancellation flag.
          * @param executor Non-owning executor used to resume the waiter.
-         * @param cancellationFlag Parent coroutine's cancellation flag, or nullptr.
          * @return Awaiter that consumes the result exactly once.
          * @pre The task is valid; a repeated consumer calls terminate.
          * @note If startup fails, the coroutine may be resumed synchronously on
          *       the current thread before this method returns.
          */
         [[nodiscard]] AsyncFuture<T>::FutureAwaiter getAwaiter(
-            IExecutor* executor,
-            std::atomic<bool>* cancellationFlag) noexcept {
+            IExecutor* executor) noexcept {
             requireValid();
             startForAwait();
             if (executor == nullptr && !m_future.isSignaled()) [[unlikely]] {
@@ -455,13 +456,7 @@ namespace shuttle::async {
                 std::terminate();
             }
             std::exchange(m_handle, nullptr);
-            return m_future.prepareAwaitable(executor).prepareAwaiter(cancellationFlag);
-        }
-
-        /// Equivalent to `co_await get()` using the current thread's pinned executor.
-        /// @return FutureAwaitable for the task result.
-        auto operator co_await() noexcept {
-            return get(); // Просто перенаправляем в дефолтный TaskAwaiter
+            return m_future.getAwaiter(executor);
         }
 
         /**
@@ -519,8 +514,6 @@ namespace shuttle::async {
     private:
         template <typename>
         friend class BlockingTask;
-        template <typename>
-        friend class CancellationToken;
 
         // Precondition for public operations that require an existing frame.
         void requireValid() const noexcept {
@@ -558,94 +551,12 @@ namespace shuttle::async {
     };
 
     /**
-     * @brief Move-only representation of a cancelled task.
-     *
-     * Owns a moved AsyncTask and awaits its result exactly once. Cancellation is
-     * cooperative; this token's awaiter forcibly sets isCancelled in AsyncResult,
-     * regardless of the producer's value.
-     *
-     * @tparam T Result type of the wrapped task.
-     */
-    template <typename T>
-    class [[nodiscard]] CancellationToken final {
-    public:
-        /// Takes ownership of the task and its coroutine handle.
-        explicit CancellationToken(AsyncTask<T>&& task) noexcept
-            : m_task{std::move(task)} {}
-
-        /// Copying is disabled because the token owns a one-shot task.
-        CancellationToken(const CancellationToken&) = delete;
-        CancellationToken& operator=(const CancellationToken&) = delete;
-        /// Transfers ownership of the task.
-        CancellationToken(CancellationToken&&) noexcept = default;
-        /// Transfers ownership, releasing the previously held task.
-        CancellationToken& operator=(CancellationToken&&) noexcept = default;
-
-        /// @return true if the wrapped task contains a valid handle.
-        [[nodiscard]] bool has_value() const noexcept {
-            return m_task.has_value();
-        }
-
-        /// @return Task creation or startup error, if any.
-        [[nodiscard]] std::optional<Error> getError() const noexcept {
-            return m_task.getError();
-        }
-
-        /// Awaiter that delegates scheduling to FutureAwaiter and marks the result cancelled.
-        struct Awaiter {
-            /// Inner awaiter that retains a reference to the state.
-            AsyncFuture<T>::FutureAwaiter m_taskAwaiter;
-
-            /// @return true if the task has already been signaled.
-            [[nodiscard]] bool await_ready() const noexcept {
-                return m_taskAwaiter.await_ready();
-            }
-
-            /// Delegates waiter registration and scheduling to the shared state.
-            std::coroutine_handle<> await_suspend(std::coroutine_handle<> handle) noexcept {
-                return m_taskAwaiter.await_suspend(handle);
-            }
-
-            /// Returns the result with the cancellation flag forcibly set.
-            [[nodiscard]] auto await_resume() noexcept {
-                auto result = m_taskAwaiter.await_resume();
-                result.isCancelled = true;
-                return result;
-            }
-        };
-
-        /**
-         * @brief Prepares a one-shot awaiter for the wrapped task.
-         * @param resumeExecutor Non-owning executor used to resume the waiter.
-         * @return Awaiter; nullptr is allowed only if completion has already been published.
-         */
-        [[nodiscard]] Awaiter get(IExecutor* resumeExecutor = IExecutor::getThreadPinnedExecutor()) noexcept {
-            return Awaiter{m_task.getAwaiter(resumeExecutor, nullptr)};
-        }
-
-        /// Awaits using the current thread's pinned executor.
-        Awaiter operator co_await() & noexcept {
-            return get();
-        }
-
-        /// Uses the same waiting path as the lvalue overload.
-        Awaiter operator co_await() && noexcept {
-            return operator co_await();
-        }
-
-    private:
-        /// Sole task awaited by synchronous get().
-        AsyncTask<T> m_task;
-    };
-
-    /**
      * @brief Requests cooperative cancellation and transfers the task to a token.
      * @return Move-only token for awaiting task completion.
      */
     template <typename T>
-    CancellationToken<T> AsyncTask<T>::cancel() noexcept {
+    void AsyncTask<T>::cancel() noexcept {
         m_future.cancel();
-        return CancellationToken<T>{std::move(*this)};
     }
 
     /**
@@ -681,7 +592,7 @@ namespace shuttle::async {
         }
 
         /// Requests cancellation and transfers ownership of the task to a token.
-        [[nodiscard]] CancellationToken<T> cancel() noexcept {
+        void cancel() noexcept {
             return m_task.cancel();
         }
 
@@ -704,47 +615,43 @@ namespace shuttle::async {
          *          invalid when the shared state is destroyed. Do not extract
          *          a result from a cancelled task with no value.
          */
-                decltype(auto) get() {
+        decltype(auto) get() {
             m_task.requireValid();
             m_task.requireSingleConsumer();
             m_task.startForAwait();
+
             auto threadContextGuard = m_executor.initializeThreadContext();
-
-            // 1. Obtain the awaitable object by passing the address of our internal m_executor.
-            // This directly accesses the internal state of the AsyncTask.
-            auto awaitable = m_task.m_future.prepareAwaitable(&m_executor);
-            auto* state = awaitable.m_state;
+            auto& state = m_task.m_future.getState(); // Прямой доступ к AsyncSharedState
 
             // -----------------------------------------------------------------
-            // FAST-PATH STAGE 1: Data is ALREADY available (Producer finished before get)
+            // FAST-PATH: Если данные УЖЕ готовы, пролетаем сразу без ухода в сон
             // -----------------------------------------------------------------
-            if (state->isSignaled()) {
+            if (state.isSignaled()) {
                 if constexpr (std::same_as<T, void>) return;
-                else return state->extractValue();
+                else return state.extractValue();
             }
 
             // -----------------------------------------------------------------
-            // FAST-PATH STAGE 2: Data race with the producer during registration.
-            // If tryRegisterWaiter returns false, it implies that while we were
-            // writing pointers, the producer IMMEDIATELY transitioned the state to Signaled!
+            // SLOW-PATH: Данных нет. Создаем узел ожидания прямо на стеке потока ОС.
             // -----------------------------------------------------------------
-            if (!state->tryRegisterWaiter(std::noop_coroutine(), &m_executor)) {
-                if constexpr (std::same_as<T, void>) return;
-                else return state->extractValue();
+            WaitNode node;
+            node.handle = std::noop_coroutine();
+            node.executor = &m_executor;
+
+            // Вызываем prepare_wait напрямую. Передаем std::noop_coroutine(),
+            // так как для физического потока ОС у нас нет корутинного хэндла.
+            if (state.prepare_wait(&node)) {
+                // Успех! notify() нас не перехватил, мы честно встали в SUSPEND.
+                // Безопасно усыпляем физический поток ОС на уровне ядра.
+                m_executor.waitForSignal();
             }
 
-            // -----------------------------------------------------------------
-            // SLOW-PATH STAGE 3: Data is absent, waiter is successfully registered.
-            // Force the physical OS thread into deep kernel-level suspension via futex/WaitOnAddress.
-            // Protection against spurious wake-ups (while loop) is already handled inside waitForSignal!
-            // -----------------------------------------------------------------
-            m_executor.waitForSignal();
-
-            // The thread has woken up; data is guaranteed to be available.
-            // Extract the r-value reference without performing a single copy operation!
+            // Поток проснулся (или пролетел гонку), данные гарантированно на месте
             if constexpr (std::same_as<T, void>) return;
-            else return state->extractValue();
+            else return state.extractValue();
         }
+
+
 
     private:
         /// Sole task awaited by synchronous get().

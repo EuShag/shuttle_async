@@ -3,11 +3,13 @@
  * @brief Platform-agnostic file management types and bitmasks.
  */
 
-#ifndef SHUTTLE_ASYNC_ASYNC_RUNTIME_HPP
-#define SHUTTLE_ASYNC_ASYNC_RUNTIME_HPP
+#ifndef SHUTTLE_ASYNC_I_ASYNC_RUNTIME_HPP
+#define SHUTTLE_ASYNC_I_ASYNC_RUNTIME_HPP
 #include <expected>
 #include <filesystem>
 #include "async_io.hpp"
+#include "i_cancellable.hpp"
+#include "runtime_result_code.hpp"
 
 namespace shuttle::async {
 
@@ -130,21 +132,107 @@ namespace shuttle::async {
         FileFlags flags = FileFlags::attribute_normal;
     };
 
+    class IEvent {
+    public:
+        virtual ~IEvent() = default;
 
+        // Сбросить событие в несигнальное состояние
+        virtual void reset() = 0;
+
+        // Взвести событие (перевести в сигнальное состояние с CPU)
+        virtual void signal() = 0;
+
+        // Возвращает сырой системный хэндл (HANDLE для Win32, fd для Linux)
+        // Метод константный, не бросает исключений и гарантирует возврат числа
+        [[nodiscard]] uint64_t getNativeHandle() const noexcept { return m_nativeHandle; }
+
+    protected:
+        // Конструктор по умолчанию доступен только классам-наследникам
+        IEvent() noexcept = default;
+
+        // Позволяет конкретной реализации (например, Win32Event) записать хэндл при создании
+        explicit IEvent(uint64_t nativeHandle) noexcept : m_nativeHandle(nativeHandle) {}
+
+        // Поле открыто для записи только для наследников интерфейса
+        uint64_t m_nativeHandle{ 0 };
+    };
+
+
+    // Пока не смотри на возвращаемые значения
     class IAsyncRuntime {
     public:
-        virtual std::expected<AsyncFile, FileAccessMode> createFile(
-            std::filesystem::path path,
-            FileOptions options
+        virtual std::expected<AsyncFile, RuntimeResultCode> createFile(
+            std::filesystem::path const& path,
+            FileOptions options,
+            IntrusiveStrongRef<IAsyncRuntime>&& ref
         ) = 0;
 
-        virtual std::expected<AsyncIo, FileAccessMode> createTimer() = 0;
-        virtual std::expected<AsyncIo, FileAccessMode> createEvent() = 0;
+        virtual void delay(std::chrono::milliseconds ms, IntrusiveStrongRef<IAsyncRuntime>&& ref) = 0;
+
+        virtual void setTimeout(
+            ICancellable* cancellable,
+            std::chrono::milliseconds ms,
+            IntrusiveStrongRef<IAsyncRuntime>&& ref) = 0;
+
+        virtual IEvent* getEvent(IntrusiveStrongRef<IAsyncRuntime>&& ref) = 0; // Заменить на абстракцию. Может использоваться в связке с DX12.
+
+        // Подписка на системный хэндл Windows (Event, Semaphore, Mutex) с ограничением по времени
+        virtual void waitEvent(
+            IEvent* hEvent,
+            std::chrono::milliseconds timeoutMs,
+            IntrusiveStrongRef<IAsyncRuntime>&& ref) = 0; // здесь тоже
 
         virtual ~IAsyncRuntime() = default;
+    };
+
+    class AsyncRuntime final {
+    public:
+
+        AsyncRuntime(IntrusivePtr<IAsyncRuntime>&& ptr) : m_ptr{std::move(ptr)} {}
+
+        std::expected<AsyncFile, RuntimeResultCode> createFile(
+            std::filesystem::path const& path,
+            FileOptions options
+        ) {
+            auto refOpt = m_ptr.tryGetStrongRef();
+
+            return m_ptr->createFile(path, options, std::move(*refOpt));
+        }
+
+        void delay(std::chrono::milliseconds ms) {
+            auto refOpt = m_ptr.tryGetStrongRef();
+
+            return m_ptr->delay(ms, std::move(*refOpt));
+        }
+
+        void setTimeout(
+            ICancellable* cancellable,
+            std::chrono::milliseconds ms) {
+            auto refOpt = m_ptr.tryGetStrongRef();
+
+            return m_ptr->setTimeout(cancellable, ms, std::move(*refOpt));
+        }
+
+        IEvent* getEvent() {
+            auto refOpt = m_ptr.tryGetStrongRef();
+
+            return m_ptr->getEvent(std::move(*refOpt));
+        }
+
+        // Подписка на системный хэндл Windows (Event, Semaphore, Mutex) с ограничением по времени
+        void waitEvent(
+            IEvent* hEvent,
+            std::chrono::milliseconds timeoutMs) {
+            auto refOpt = m_ptr.tryGetStrongRef();
+
+            return m_ptr->waitEvent(hEvent, timeoutMs, std::move(*refOpt));
+        } // здесь тоже
+
+    private:
+        IntrusivePtr<IAsyncRuntime> m_ptr;
     };
 
 
 }
 
-#endif //SHUTTLE_ASYNC_ASYNC_RUNTIME_HPP
+#endif //SHUTTLE_ASYNC_I_ASYNC_RUNTIME_HPP
